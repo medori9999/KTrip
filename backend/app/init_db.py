@@ -1,0 +1,81 @@
+import sqlite3
+import pandas as pd
+import os
+
+# 1. 파일 경로 설정 (backend 폴더 기준)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # backend 폴더
+CSV_PATH = os.path.join(BASE_DIR, "locations.csv")
+DB_PATH = os.path.join(BASE_DIR, "ktrip.db")
+
+def init_database():
+    print(f"📂 CSV 파일 읽는 중: {CSV_PATH}")
+    
+    # 2. CSV 파일 불러오기 (한글 컬럼명이므로 utf-8-sig 사용)
+    try:
+        df = pd.read_csv(CSV_PATH, encoding='utf-8-sig')
+        # 혹시 모를 빈 값(NaN)은 빈 문자열로 채워줍니다. (에러 방지)
+        df = df.fillna('')
+        print(f"✅ 데이터 {len(df)}개 로드 성공!")
+        print(f"   - 컬럼 목록: {list(df.columns)}")
+    except FileNotFoundError:
+        print("❌ 오류: locations.csv 파일을 찾을 수 없습니다. backend 폴더에 파일이 있는지 확인해주세요.")
+        return
+    except Exception as e:
+        print(f"❌ 데이터 로드 실패: {e}")
+        return
+
+    # 3. 데이터베이스 연결 (없으면 자동 생성됨)
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # 4. 기존 테이블이 있다면 삭제하고 새로 생성 (초기화)
+    cursor.execute("DROP TABLE IF EXISTS locations")
+    
+    # 5. 테이블 스키마 정의 (우리가 쓸 영어 변수명으로 매핑할 준비)
+    cursor.execute("""
+    CREATE TABLE locations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,         -- 장소명
+        address TEXT,               -- 주소
+        lat REAL,                   -- 위도
+        lng REAL,                   -- 경도
+        media_title TEXT,           -- 제목 (영화/드라마 이름)
+        media_type TEXT,            -- 미디어타입 (movie, drama 등)
+        description TEXT            -- 장소설명
+    )
+    """)
+
+    # 6. 데이터 집어넣기 (한글 컬럼 -> 영어 DB 컬럼 매핑)
+    success_count = 0
+    
+    for index, row in df.iterrows():
+        try:
+            # CSV의 한글 컬럼명에서 데이터를 꺼냅니다.
+            name = row['장소명']
+            address = row['주소']
+            lat = row['위도']
+            lng = row['경도']
+            media_title = row['제목']
+            media_type = row['미디어타입']
+            description = row['장소설명']
+
+            cursor.execute("""
+            INSERT INTO locations (name, address, lat, lng, media_title, media_type, description)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (name, address, lat, lng, media_title, media_type, description))
+            
+            success_count += 1
+            
+        except KeyError as e:
+            print(f"⚠️ 컬럼 이름이 다릅니다! CSV 파일의 헤더를 확인해주세요. (없는 컬럼: {e})")
+            break
+        except Exception as e:
+            print(f"⚠️ {index}번째 행 저장 실패: {e}")
+
+    # 7. 저장 및 종료
+    conn.commit()
+    conn.close()
+    print(f"🎉 총 {success_count}개 장소 데이터 저장 완료! (DB 파일: {DB_PATH})")
+
+if __name__ == "__main__":
+    init_database()
