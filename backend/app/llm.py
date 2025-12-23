@@ -15,7 +15,7 @@ def get_db_info(query):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    # 키워드 추출 (간단 버전)
+    # 키워드 추출 
     keyword = query.replace("추천해줘", "").replace("여행", "").strip()
     
     
@@ -82,4 +82,5 @@ def get_ai_recommendation(user_query):
         )
         return response.choices[0].message.content
     except Exception as e:
-        return json.dumps({"error": f"AI 에러: {str(e)}"}) ##xx
+        return json.dumps({"error": f"AI 에러: {str(e)}"}) ##
+    
