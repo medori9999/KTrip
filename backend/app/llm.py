@@ -52,7 +52,7 @@ def get_ai_recommendation(user_query):
 
     context_info = get_db_info(user_query)
 
-    #  시스템 프롬프트에서 JSON 출력을 강제함 3333
+    #  시스템 프롬프트에서 JSON 출력을 강제함 33333
     system_prompt = """
     너는 여행 가이드야. 사용자 질문과 제공된 [장소 데이터]를 보고 추천 코스를 짜줘.
     
