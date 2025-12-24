@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>K-Trip | Trace Your Vibe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap');
+        :root { --accent: #6366f1; --bg: #F3F4F6; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #e5e7eb; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .mobile-container { width: 375px; height: 812px; background-color: var(--bg); position: relative; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border-radius: 40px; border: 8px solid #1f2937; }
+        .screen { position: absolute; inset: 0; transition: transform .5s cubic-bezier(0.4, 0, 0.2, 1), opacity .5s ease; overflow-y: auto; background-color: var(--bg); padding-bottom: 60px; }
+        .hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
+        .section { background: white; border-radius: 24px; padding: 20px; margin: 0 16px 16px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .question { font-size: 14px; font-weight: 700; margin: 16px 0 8px; color: #1f2937; }
+        .option { border: 1.5px solid #f3f4f6; border-radius: 16px; padding: 12px; font-size: 13px; text-align: center; cursor: pointer; transition: all 0.2s; background: white; width: 100%; color: #4b5563; font-weight: 500; }
+        .option.selected { border-color: var(--accent); background: #eef2ff; font-weight: 700; color: var(--accent); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1); }
+        .modal-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(8px); }
+        .modal { background: white; width: 85%; border-radius: 30px; padding: 25px; transform: scale(0.9); transition: transform 0.3s; }
+        .line-draw { border-left: 2px dashed #D1D5DB; margin-left: 15px; height: 40px; }
+        .screen::-webkit-scrollbar { display: none; }
+        
+        /* 로딩 스피너 */
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <section id="scr-landing" class="screen flex flex-col justify-center items-center bg-gradient-to-br from-rose-100 via-pink-100 to-indigo-100 text-gray-800 p-8 text-center z-50">
+            <h1 class="text-5xl font-black mb-2 text-indigo-700 italic tracking-tighter">K-Trip</h1>
+            <p class="text-sm leading-relaxed mb-8 text-gray-600 font-medium italic">Find your <span class="font-bold border-b-2 border-indigo-400">K-Soul</span></p>
+            <button onclick="nextScreen('scr-landing', 'scr-survey')" class="bg-indigo-500 hover:bg-indigo-600 transition text-white font-bold px-10 py-3 rounded-2xl shadow-md active:scale-95">Start My Trip</button>
+        </section>
+
+        <section id="scr-survey" class="screen hidden z-40 pt-8">
+            <header class="text-center mb-8 px-6">
+                <h2 class="text-xl font-black text-gray-800 italic">Travel Style</h2>
+            </header>
+
+            <div class="section">
+                <div class="question">Which area to explore?</div>
+                <div id="q-area" class="grid grid-cols-1 gap-2">
+                    <div class="option" onclick="toggleSingle(this)">Auto-detect my location</div>
+                    <div class="option" onclick="toggleSingle(this)">Choose manually</div>
+                </div>
+                <div class="question">How long for itinerary?</div>
+                <div id="q-duration" class="grid grid-cols-2 gap-2">
+                    <div class="option" onclick="toggleSingle(this)">Half day</div>
+                    <div class="option" onclick="toggleSingle(this)">1 day</div>
+                    <div class="option" onclick="toggleSingle(this)">2 days</div>
+                    <div class="option" onclick="toggleSingle(this)">3 days+</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="question">Your travel pace</div>
+                <div id="q-pace" class="grid grid-cols-1 gap-2">
+                    <div class="option" onclick="toggleSingle(this)">Relaxed and slow</div>
+                    <div class="option" onclick="toggleSingle(this)">Balanced pace</div>
+                    <div class="option" onclick="toggleSingle(this)">See as much as possible</div>
+                </div>
+                <div class="question">Are you traveling alone?</div>
+                <div id="q-companion" class="grid grid-cols-2 gap-2">
+                    <div class="option" onclick="toggleSingle(this)">Solo</div>
+                    <div class="option" onclick="toggleSingle(this)">With others</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="question">What are you into? (Multi)</div>
+                <div id="q-interests" class="grid grid-cols-2 gap-2">
+                    <div class="option" onclick="openSearch(this, 'K-Pop')">K-Pop</div>
+                    <div class="option" onclick="openSearch(this, 'K-Drama')">K-Drama</div>
+                    <div class="option" onclick="openSearch(this, 'K-Movie')">K-Movie</div>
+                    <div class="option" onclick="openSearch(this, 'K-Show')">K-Show</div>
+                </div>
+                <div class="question">How much K-content do you want?</div>
+                <div id="q-ratio" class="grid grid-cols-1 gap-2">
+                    <div class="option" onclick="toggleSingle(this)">Mostly K-content</div>
+                    <div class="option" onclick="toggleSingle(this)">About half</div>
+                    <div class="option" onclick="toggleSingle(this)">Just 1–2 spots</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="question">Food preference?</div>
+                <div id="q-food" class="grid grid-cols-1 gap-2">
+                    <div class="option" onclick="toggleSingle(this)">Safe & familiar</div>
+                    <div class="option" onclick="toggleSingle(this)">Spicy is okay</div>
+                    <div class="option" onclick="toggleSingle(this)">Love local food</div>
+                </div>
+                <div class="question">Include cafés?</div>
+                <div id="q-cafe" class="grid grid-cols-2 gap-2">
+                    <div class="option" onclick="toggleSingle(this)">Definitely</div>
+                    <div class="option" onclick="toggleSingle(this)">Nice to have</div>
+                    <div class="option" onclick="toggleSingle(this)">Not necessary</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="question">Is social media important?</div>
+                <div id="q-photo" class="grid grid-cols-1 gap-2">
+                    <div class="option" onclick="toggleSingle(this)">Very important</div>
+                    <div class="option" onclick="toggleSingle(this)">Sometimes</div>
+                    <div class="option" onclick="toggleSingle(this)">Not important</div>
+                </div>
+                
+                <button onclick="submitSurvey()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg mt-10 active:scale-95 transition-transform">
+                    View Recommended Route
+                </button>
+            </div>
+        </section>
+
+        <section id="scr-result" class="screen hidden z-30 pt-10 px-6">
+            <h2 class="text-3xl font-black mb-2 tracking-tighter">Your <span class="text-indigo-600">Soul Route</span></h2>
+            <p class="text-xs text-gray-400 mb-8">We found the perfect K-spots for you.</p>
+            
+            <div id="result-container" class="space-y-2 mt-4">
+                <div class="loader"></div> </div>
+
+            <div class="mt-10">
+                <button onclick="location.reload()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl">Start New Journey</button>
+            </div>
+        </section>
+
+        <div id="modal-search" class="modal-bg">
+            <div class="modal shadow-2xl">
+                <h3 class="text-xl font-black mb-2 text-gray-800 italic">Who is your Bias?</h3>
+                <p id="modal-cat" class="text-[10px] text-gray-400 mb-4"></p>
+                <input id="input-search" type="text" class="w-full bg-gray-100 border-none p-4 rounded-xl mb-4 outline-none font-bold" placeholder="e.g. BTS, NewJeans...">
+                <button onclick="closeSearch()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-black shadow-lg">Confirm</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 화면 전환 함수
+        function nextScreen(curr, next) {
+            document.getElementById(curr).classList.add('hidden');
+            document.getElementById(next).classList.remove('hidden');
+            document.getElementById(next).scrollTo(0,0);
+        }
+
+        // 단일 선택 로직
+        function toggleSingle(el) {
+            const parent = el.parentElement;
+            parent.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        // 검색 모달 관련 로직
+        let customInterests = []; // 직접 입력한 키워드 저장용 (예: BTS)
+
+        function openSearch(el, cat) {
+            el.classList.toggle('selected');
+            if(el.classList.contains('selected')) {
+                document.getElementById('modal-cat').innerText = `Tracing your favorite ${cat}...`;
+                document.getElementById('modal-search').style.display = 'flex';
+                setTimeout(() => { document.querySelector('.modal').style.transform = 'scale(1)'; }, 10);
+            }
+        }
+
+        function closeSearch() {
+            const val = document.getElementById('input-search').value;
+            if(val) {
+                customInterests.push(val); // 입력값 저장
+            }
+            document.getElementById('input-search').value = ""; // 초기화
+            document.querySelector('.modal').style.transform = 'scale(0.9)';
+            setTimeout(() => { document.getElementById('modal-search').style.display = 'none'; }, 200);
+        }
+
+        // [핵심] 설문 데이터 수집 및 서버 전송 함수
+        async function submitSurvey() {
+            // 1. 화면 넘기기 (로딩화면 보여주기)
+            nextScreen('scr-survey', 'scr-result');
+            const resultContainer = document.getElementById('result-container');
+            resultContainer.innerHTML = '<div class="loader"></div><p class="text-center text-gray-400 text-xs">AI is planning your trip...</p>';
+
+            // 2. 선택된 값들 긁어모으기
+            const getSelectedText = (id) => {
+                const el = document.querySelector(`#${id} .selected`);
+                return el ? el.innerText : "Not selected";
+            };
+
+            // 관심사 수집 (버튼 선택된 것들 + 직접 입력한 것들)
+            let selectedInterests = [];
+            document.querySelectorAll('#q-interests .selected').forEach(el => selectedInterests.push(el.innerText));
+            selectedInterests = selectedInterests.concat(customInterests);
+
+            const surveyData = {
+                target_area: getSelectedText('q-area'),
+                duration: getSelectedText('q-duration'),
+                pace: getSelectedText('q-pace'),
+                companion: getSelectedText('q-companion'),
+                interests: selectedInterests,
+                k_content_ratio: getSelectedText('q-ratio'),
+                food_preference: getSelectedText('q-food'),
+                need_cafe: getSelectedText('q-cafe'),
+                photo_priority: getSelectedText('q-photo'),
+                record_method: "Instagram-style summary" // 임시 고정
+            };
+
+            console.log("🚀 전송할 데이터:", surveyData);
+
+            try {
+                // 3. 파이썬 서버로 전송 (FastAPI)
+                const response = await fetch("/api/recommend", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(surveyData)
+                });
+
+                const data = await response.json();
+                console.log("✅ AI 응답:", data);
+
+                // 4. 결과 화면 그리기
+                renderResult(data.spots);
+
+            } catch (error) {
+                console.error("에러:", error);
+                resultContainer.innerHTML = `<p class="text-center text-red-500">Failed to load recommendations.<br>${error}</p>`;
+            }
+        }
+
+        // [핵심] 결과를 예쁜 카드로 만들어주는 함수
+        function renderResult(spots) {
+            const container = document.getElementById('result-container');
+            container.innerHTML = ""; // 로딩 제거
+
+            if (!spots || spots.length === 0) {
+                container.innerHTML = "<p class='text-center text-gray-500'>No spots found based on your preferences.</p>";
+                return;
+            }
+
+            spots.forEach((spot, index) => {
+                // 카드 HTML 생성
+                const cardHtml = `
+                <div class="flex gap-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xs">${index + 1}</div>
+                        ${index !== spots.length - 1 ? '<div class="line-draw h-full"></div>' : ''}
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl flex-1 mb-4 border border-gray-100 shadow-sm">
+                        <h4 class="font-bold text-sm text-indigo-900">${spot.name}</h4>
+                        <p class="text-[10px] text-gray-500 mt-1">${spot.description}</p>
+                        <div class="mt-2 text-[10px] font-bold text-indigo-400 bg-indigo-50 inline-block px-2 py-1 rounded-md">
+                            ${spot.media_title || 'K-Place'}
+                        </div>
+                    </div>
+                </div>
+                `;
+                container.innerHTML += cardHtml;
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>K-Trip | Trace Your Vibe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap');
+        
+        :root { --accent: #6366f1; --bg: #F3F4F6; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); margin: 0; overflow-x: hidden; }
+
+        /* Screen Transitions */
+        .screen { 
+            position: fixed; inset: 0; 
+            transition: transform .5s cubic-bezier(0.4, 0, 0.2, 1), opacity .5s ease; 
+            overflow-y: auto; 
+        }
+        .hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
+
+        /* UI Components */
+        .section { background: white; border-radius: 24px; padding: 24px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .question { font-size: 15px; font-weight: 700; margin: 20px 0 10px; color: #1f2937; }
+        
+        .option { 
+            border: 1.5px solid #f3f4f6; border-radius: 16px; padding: 14px; 
+            font-size: 14px; text-align: center; cursor: pointer; 
+            transition: all 0.2s; background: white; width: 100%; 
+            color: #4b5563; font-weight: 500;
+        }
+        .option.selected { 
+            border-color: var(--accent); background: #eef2ff; 
+            font-weight: 700; color: var(--accent); 
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Modal */
+        .modal-bg { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4); 
+            display: none; align-items: center; justify-content: center; 
+            z-index: 100; backdrop-filter: blur(8px); 
+        }
+        .modal { background: white; width: 90%; max-width: 360px; border-radius: 30px; padding: 30px; transform: scale(0.9); transition: transform 0.3s; }
+        
+        /* Timeline */
+        .line-draw { border-left: 2px dashed #D1D5DB; margin-left: 15px; height: 50px; }
+    </style>
+</head>
+<body>
+
+    <section id="scr-landing" class="screen flex flex-col justify-center items-center bg-gradient-to-br from-rose-100 via-pink-100 to-indigo-100 text-gray-800 p-8 text-center z-50">
+        <span class="text-sm font-extrabold tracking-wide bg-white/90 px-5 py-2 rounded-full mb-4 shadow-md text-indigo-600" style="letter-spacing: 0.08em;">Dramas · Idols · Shows · Movies</span>
+        
+        <h1 class="text-5xl font-black mb-3 text-indigo-700 italic tracking-tighter">K-Trip</h1>
+        
+        <p class="text-base leading-relaxed mb-8 text-gray-600">
+            <span class="font-bold">Find your K-Soul</span>
+        </p>
+        
+        <div class="flex w-full justify-center">
+            <button onclick="nextScreen('scr-landing', 'scr-survey')" class="bg-indigo-500 hover:bg-indigo-600 transition text-white font-bold px-10 py-3 rounded-2xl shadow-md active:scale-95">
+                Start My Trip
+            </button>
+        </div>
+
+        <div class="mt-12 flex flex-row items-center gap-6 text-2xl tracking-widest italic font-semibold">
+            <span class="text-indigo-500">Trace</span>
+            <span class="text-pink-400">Taste</span>
+            <span class="text-rose-400">Vibe</span>
+            <span class="text-purple-400">Share</span>
+        </div>
+    </section>
+
+    <section id="scr-survey" class="screen hidden z-40 pb-32 px-6 pt-10">
+        <header class="text-center mb-10">
+            <h2 class="text-2xl font-black text-gray-800 italic">Travel Style</h2>
+            <p class="text-sm text-gray-400 font-medium">Personalise Your Journey</p>
+        </header>
+
+        <div class="section">
+            <div class="text-[11px] font-black text-indigo-500 uppercase tracking-widest mb-2">1. Basic Info</div>
+            <div class="question">Which area to explore?</div>
+            <div class="grid grid-cols-1 gap-3">
+                <div class="option" onclick="toggleSingle(this)">Auto-detect my location</div>
+                <div class="option" onclick="toggleSingle(this)">Choose manually</div>
+            </div>
+            <div class="question">How long for itinerary?</div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="option" onclick="toggleSingle(this)">Half day</div>
+                <div class="option" onclick="toggleSingle(this)">1 day</div>
+                <div class="option" onclick="toggleSingle(this)">2 days</div>
+                <div class="option" onclick="toggleSingle(this)">3 days+</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="text-[11px] font-black text-pink-500 uppercase tracking-widest mb-2">2. Today’s Travel Style</div>
+            <div class="question">Your travel pace</div>
+            <div class="grid grid-cols-1 gap-3">
+                <div class="option" onclick="toggleSingle(this)">Relaxed and slow</div>
+                <div class="option" onclick="toggleSingle(this)">Balanced pace</div>
+                <div class="option" onclick="toggleSingle(this)">See as much as possible</div>
+            </div>
+            <div class="question">Are you traveling alone?</div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="option" onclick="toggleSingle(this)">Solo</div>
+                <div class="option" onclick="toggleSingle(this)">With others</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="text-[11px] font-black text-purple-500 uppercase tracking-widest mb-2">3. Interests</div>
+            <div class="question">What are you into? (Multi)</div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="option" onclick="openSearch(this, 'K-Pop')">K-Pop</div>
+                <div class="option" onclick="openSearch(this, 'K-Drama')">K-Drama</div>
+                <div class="option" onclick="openSearch(this, 'K-Movie')">K-Movie</div>
+                <div class="option" onclick="openSearch(this, 'K-Show')">K-Show</div>
+            </div>
+            <div class="question">How much K-content do you want?</div>
+            <div class="grid grid-cols-1 gap-3">
+                <div class="option" onclick="toggleSingle(this)">Mostly K-content</div>
+                <div class="option" onclick="toggleSingle(this)">About half</div>
+                <div class="option" onclick="toggleSingle(this)">Just 1–2 spots</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="text-[11px] font-black text-rose-500 uppercase tracking-widest mb-2">4. Food & Café</div>
+            <div class="question">What kind of food do you prefer?</div>
+            <div class="grid grid-cols-1 gap-3">
+                <div class="option" onclick="toggleSingle(this)">Safe & familiar</div>
+                <div class="option" onclick="toggleSingle(this)">Spicy is okay</div>
+                <div class="option" onclick="toggleSingle(this)">Love local food</div>
+            </div>
+            <div class="question">Would you like to include cafés?</div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="option" onclick="toggleSingle(this)">Definitely</div>
+                <div class="option" onclick="toggleSingle(this)">Nice to have</div>
+                <div class="option col-span-2" onclick="toggleSingle(this)">Not necessary</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="text-[11px] font-black text-orange-500 uppercase tracking-widest mb-2">5. Photos & Memories</div>
+            <div class="question">Is social media important to you?</div>
+            <div class="grid grid-cols-1 gap-3">
+                <div class="option" onclick="toggleSingle(this)">Very important</div>
+                <div class="option" onclick="toggleSingle(this)">Sometimes</div>
+                <div class="option" onclick="toggleSingle(this)">Not important</div>
+            </div>
+            <div class="question">Save today’s trip as a record?</div>
+            <div class="grid grid-cols-1 gap-3">
+                <div class="option" onclick="toggleSingle(this)">Instagram-style summary</div>
+                <div class="option" onclick="toggleSingle(this)">Personal travel log</div>
+                <div class="option" onclick="toggleSingle(this)">Not needed</div>
+            </div>
+        </div>
+
+        <div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-gray-100 via-gray-100 to-transparent">
+            <button onclick="nextScreen('scr-survey', 'scr-result')" class="w-full bg-indigo-600 text-white py-5 rounded-3xl font-black shadow-2xl active:scale-95 transition">
+                View Recommended Route
+            </button>
+        </div>
+    </section>
+
+    <section id="scr-result" class="screen hidden z-30 pt-12 px-8 pb-32 bg-white">
+        <h2 class="text-4xl font-black mb-2 tracking-tighter">Your <span class="text-indigo-600">Soul Route</span></h2>
+        <p class="text-gray-400 mb-10 font-medium">We found the perfect K-spots for you.</p>
+        <div class="space-y-2">
+            <div class="flex gap-5">
+                <div class="flex flex-col items-center"><div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg">1</div><div class="line-draw"></div></div>
+                <div class="bg-indigo-50 p-6 rounded-3xl flex-1 mb-6 border border-indigo-100"><h4 class="font-bold text-indigo-900">Chickpeace Garosugil</h4><p class="text-xs text-indigo-400 mt-1">Starting point</p></div>
+            </div>
+            <div class="flex gap-5">
+                <div class="flex flex-col items-center"><div class="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 font-bold">2</div><div class="line-draw"></div></div>
+                <div class="bg-gray-50 p-6 rounded-3xl flex-1 mb-6 border border-gray-100"><h4 class="font-bold text-gray-800" id="user-bias-spot">Selected Spot</h4><p class="text-xs text-gray-400 mt-1">Trace your bias</p></div>
+            </div>
+            <div class="flex gap-5">
+                <div class="flex flex-col items-center"><div class="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 font-bold">3</div></div>
+                <div class="bg-gray-50 p-6 rounded-3xl flex-1 border border-gray-100"><h4 class="font-bold text-gray-800">Alver Café</h4><p class="text-xs text-gray-400 mt-1">Ending Vibe</p></div>
+            </div>
+        </div>
+        <div class="fixed bottom-0 left-0 w-full p-6 bg-white border-t border-gray-100">
+            <button onclick="nextScreen('scr-result', 'scr-record')" class="w-full bg-slate-900 text-white py-5 rounded-3xl font-black shadow-xl">Save Trip as Record</button>
+        </div>
+    </section>
+
+    <section id="scr-record" class="screen hidden z-20 p-10 flex flex-col justify-center text-center bg-gradient-to-br from-indigo-50 to-rose-50">
+        <div class="text-6xl mb-8">📸</div>
+        <h2 class="text-3xl font-black mb-4 tracking-tight">Post Your<br>K-Experience</h2>
+        <div class="space-y-4">
+            <button class="w-full bg-white p-6 rounded-3xl border-2 border-indigo-500 font-bold text-indigo-600 shadow-lg" onclick="alert('Ready for Instagram!')">Instagram-style summary</button>
+            <button class="w-full bg-white p-6 rounded-3xl border border-gray-200 font-bold text-gray-600 shadow-md" onclick="alert('Saving to Log...')">Personal travel log</button>
+            <button class="w-full mt-6 text-sm font-bold text-gray-400" onclick="location.reload()">Start New Journey</button>
+        </div>
+    </section>
+
+    <div id="modal-search" class="modal-bg">
+        <div class="modal shadow-2xl">
+            <h3 class="text-2xl font-black mb-2 text-gray-800">Who is your Bias?</h3>
+            <p id="modal-cat" class="text-sm text-gray-400 mb-8 font-medium italic"></p>
+            <input id="input-search" type="text" class="w-full bg-gray-100 border-none p-5 rounded-2xl mb-6 outline-none focus:ring-4 ring-indigo-100 transition-all font-bold" placeholder="e.g. BTS, NewJeans...">
+            <button onclick="closeSearch()" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black shadow-lg">Trace This Star</button>
+        </div>
+    </div>
+
+    <script>
+        function nextScreen(curr, next) {
+            document.getElementById(curr).classList.add('hidden');
+            document.getElementById(next).classList.remove('hidden');
+            window.scrollTo(0,0);
+        }
+
+        function toggleSingle(el) {
+            const parent = el.parentElement;
+            parent.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function openSearch(el, cat) {
+            el.classList.toggle('selected');
+            if(el.classList.contains('selected')) {
+                document.getElementById('modal-cat').innerText = `Tracing your favorite ${cat}...`;
+                document.getElementById('modal-search').style.display = 'flex';
+                setTimeout(() => { document.querySelector('.modal').style.transform = 'scale(1)'; }, 10);
+            }
+        }
+
+        function closeSearch() {
+            const val = document.getElementById('input-search').value;
+            if(val) {
+                document.getElementById('user-bias-spot').innerText = val + "'s Secret Place";
+            }
+            document.querySelector('.modal').style.transform = 'scale(0.9)';
+            setTimeout(() => { document.getElementById('modal-search').style.display = 'none'; }, 200);
+        }
+    </script>
+</body>
+</html>

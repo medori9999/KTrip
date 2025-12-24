@@ -15,7 +15,8 @@ class Location(Base):
     media_type = Column(String)             # 구분
     description = Column(Text, nullable=True) 
     ai_summary = Column(Text, nullable=True) 
-
+    place_type = Column(String)
+    
 # 사용자가 올린 사진과 변환된 결과물 기록.
 class PhotoLog(Base):
     __tablename__ = "photo_logs"

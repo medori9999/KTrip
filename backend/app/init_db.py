@@ -32,6 +32,7 @@ def init_database():
     cursor.execute("DROP TABLE IF EXISTS locations")
     
     # 5. 테이블 스키마 정의 (우리가 쓸 영어 변수명으로 매핑할 준비)
+    # [수정 1] description 뒤에 쉼표(,) 추가!
     cursor.execute("""
     CREATE TABLE locations (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +42,8 @@ def init_database():
         lng REAL,                   -- 경도
         media_title TEXT,           -- 제목 (영화/드라마 이름)
         media_type TEXT,            -- 미디어타입 (movie, drama 등)
-        description TEXT            -- 장소설명
+        description TEXT,           -- 장소설명 (여기 쉼표 필수!)
+        place_type TEXT             -- 장소타입(restaurant, cafe, place)
     )
     """)
 
@@ -58,11 +60,13 @@ def init_database():
             media_title = row['제목']
             media_type = row['미디어타입']
             description = row['장소설명']
+            place_type = row['장소타입']
 
+            # [수정 2] VALUES에 물음표 8개, 변수에도 place_type 추가!
             cursor.execute("""
-            INSERT INTO locations (name, address, lat, lng, media_title, media_type, description)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (name, address, lat, lng, media_title, media_type, description))
+            INSERT INTO locations (name, address, lat, lng, media_title, media_type, description, place_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (name, address, lat, lng, media_title, media_type, description, place_type))
             
             success_count += 1
             
