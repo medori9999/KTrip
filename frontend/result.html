@@ -8,6 +8,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
+        /* Day 탭 디자인 */
+        .day-tab {
+            padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700;
+            background-color: white; color: #6b7280; border: 1px solid #e5e7eb;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+        }
+        .day-tab.active {
+            background-color: #6366f1; color: white; border-color: #6366f1;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+        }
+        /* 스크롤바 숨기기 */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
         /* Toast 알림 스타일 */
         .toast {
             position: fixed;
@@ -91,45 +105,157 @@
 </head>
 <body>
     <div class="mobile-container">
-        <section id="scr-result" class="screen active pt-10 px-6">
-            <h2 class="text-3xl font-black mb-2 tracking-tighter">Your <span class="text-indigo-600">Soul Route</span></h2>
-            <p class="text-xs text-gray-400 mb-8">We found the perfect K-spots for you.</p>
+        <section id="scr-result" class="screen active pt-8 px-5 pb-24">
+            <h2 class="text-2xl font-black mb-1 tracking-tight">Your <span class="text-indigo-600">Soul Route</span></h2>
+            <p class="text-xs text-gray-400 mb-6">Explore your personalized K-Journey.</p>
             
-            <div id="result-container" class="space-y-2 mt-4">
-                <div class="loader mx-auto"></div>
-                <p class="text-center text-gray-400 text-xs mt-2">AI is planning your trip...</p>
+            <div id="day-tabs-container" class="flex gap-2 overflow-x-auto mb-4 pb-2 scrollbar-hide"></div>
+
+            <div id="result-container" class="space-y-3 min-h-[100px]">
+                <div id="loading-spinner" class="loader mx-auto mt-10"></div>
+                <p id="loading-text" class="text-center text-gray-400 text-xs mt-2">AI is designing your trip...</p>
             </div>
 
-            <div id="map-container" class="mt-6 w-full h-56 bg-gray-200 rounded-2xl overflow-hidden relative border border-gray-100 shadow-inner"></div>
+            <div id="map-container" class="mt-6 w-full h-64 bg-gray-100 rounded-2xl overflow-hidden relative border border-gray-200 shadow-sm"></div>
             
-            <div class="mt-8 flex gap-3">
-                <button onclick="saveRoute()" class="flex-1 bg-rose-500 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"><i class="fa-solid fa-heart"></i> Save</button>
-                <button onclick="location.href='survey.html'" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl active:scale-95 transition-transform">New Trip</button>
+            <div class="mt-6 flex gap-3">
+                <button onclick="saveRoute()" class="flex-1 bg-white text-rose-500 border border-rose-100 py-3 rounded-xl font-bold shadow-sm active:scale-95 transition-transform text-sm flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-heart"></i> Save
+                </button>
+
+                <button onclick="startNewTrip()" class="flex-1 bg-slate-900 text-white py-3 rounded-xl font-bold shadow-lg active:scale-95 transition-transform text-sm">
+                    <i class="fa-solid fa-paper-plane"></i> New Trip
+                </button>
             </div>
         </section>
 
         <nav class="bottom-nav">
-    <a href="/" class="nav-item">
-        <i class="fa-solid fa-house"></i><span>Home</span>
-    </a>
-    <a href="/chat.html" class="nav-item active-tab">
-        <i class="fa-solid fa-comment-dots"></i><span>Chat</span>
-    </a>
-    <a href="/saved.html" class="nav-item">
-        <i class="fa-solid fa-heart"></i><span>Saved</span>
-    </a>
-    <a href="/photo.html" class="nav-item">
-        <i class="fa-solid fa-camera"></i><span>Photo</span>
-    </a>
-</nav>
+            <a href="/" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+            <a href="/chat.html" class="nav-item active-tab"><i class="fa-solid fa-comment-dots"></i><span>Chat</span></a>
+            <a href="/saved.html" class="nav-item"><i class="fa-solid fa-heart"></i><span>Saved</span></a>
+            <a href="/photo.html" class="nav-item"><i class="fa-solid fa-book-open"></i><span>Log</span></a>
+        </nav>
     </div>
 
-    <script>
-        ((g)=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await(a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):(d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n)))})({ key: "AIzaSyCupkJq4a5oOMYWbPE630TcPuQq9dex4vw", v: "weekly", language: "en" });
-    </script>
     <script src="script.js"></script>
     
     <script>
+        let allSpotsData = []; 
+
+        // [변경됨] 1. 서버에서 키를 받아와서 지도를 로드하는 함수
+        async function loadMapsAndStart() {
+            try {
+                // (1) 서버에서 API 키 가져오기
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                const GOOGLE_MAPS_KEY = config.googleMapsKey;
+
+                // (2) 구글 맵 로더 실행 (받아온 키 사용)
+                ((g)=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await(a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):(d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n)))})({ 
+                    key: GOOGLE_MAPS_KEY, 
+                    v: "weekly", 
+                    language: "en" 
+                });
+
+                // (3) 키 로딩 후 앱 로직 실행
+                await initializeAppLogic();
+
+            } catch (e) {
+                console.error("Critical Error: Failed to load Maps API key.", e);
+            }
+        }
+
+        // [변경됨] 2. 기존 window.load 내부 로직을 함수로 분리
+        async function initializeAppLogic() {
+            await initMap(); // script.js에 있는 함수 실행
+
+            // 기존 로직: 저장된 데이터 확인 및 렌더링
+            const existingPlan = localStorage.getItem('currentSpots');
+            const surveyData = JSON.parse(localStorage.getItem('surveyData'));
+
+            if (existingPlan) {
+                console.log("✅ 저장된 플랜 로드");
+                processAndRender(JSON.parse(existingPlan));
+            } else if (surveyData) {
+                console.log("🚀 AI 추천 요청");
+                try {
+                    const response = await fetch("/api/recommend", { 
+                        method: "POST", 
+                        headers: { "Content-Type": "application/json" }, 
+                        body: JSON.stringify(surveyData) 
+                    });
+                    const data = await response.json();
+                    
+                    if (data.spots) {
+                        localStorage.setItem('currentSpots', JSON.stringify(data.spots));
+                        processAndRender(data.spots);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    document.getElementById('result-container').innerHTML = "<p class='text-center text-red-500'>Error.</p>";
+                }
+            } else {
+                // 데이터가 없으면 설문조사 페이지로 리다이렉트
+                location.href = 'survey.html';
+            }
+        }
+
+        // [핵심] 페이지가 로드되면 위 함수 실행
+        window.addEventListener('load', loadMapsAndStart);
+
+
+        // --- 아래부터는 기존 함수들 (건드리지 않음) ---
+
+        // 데이터를 받아서 Day를 계산하고 화면에 뿌리기
+        function processAndRender(spots) {
+            const spotsPerDay = 5; 
+            
+            // 데이터에 'day' 속성이 없으면 우리가 주입!
+            allSpotsData = spots.map((spot, index) => {
+                if (!spot.day) {
+                    spot.day = Math.floor(index / spotsPerDay) + 1;
+                }
+                return spot;
+            });
+
+            // 로딩 끄기
+            document.getElementById('loading-spinner').style.display = 'none';
+            document.getElementById('loading-text').style.display = 'none';
+            
+            // 탭 만들고 첫 번째 날 보여주기
+            createDayTabs();
+            renderDay(1);
+        }
+
+        // 탭 생성 함수
+        function createDayTabs() {
+            const container = document.getElementById('day-tabs-container');
+            container.innerHTML = ''; 
+            
+            const maxDay = Math.max(...allSpotsData.map(s => s.day));
+
+            for (let i = 1; i <= maxDay; i++) {
+                const btn = document.createElement('button');
+                btn.className = `day-tab ${i === 1 ? 'active' : ''}`;
+                btn.innerText = `Day ${i}`;
+                btn.onclick = () => renderDay(i);
+                container.appendChild(btn);
+            }
+        }
+
+        // 특정 날짜만 보여주기
+        function renderDay(day) {
+            document.querySelectorAll('.day-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText === `Day ${day}`);
+            });
+
+            const dailySpots = allSpotsData.filter(s => s.day === day);
+            
+            // script.js에 있는 함수들 호출
+            if (typeof renderResult === 'function') renderResult(dailySpots); 
+            if (typeof drawRouteOnMap === 'function') drawRouteOnMap(dailySpots);
+        }
+
         // Toast 알림 표시 함수
         function showToast(message, submessage = '', icon = '💚', showButton = false, buttonText = '확인', buttonCallback = null) {
             // 오버레이 생성
@@ -180,35 +306,6 @@
             overlay.onclick = closeToast;
         }
 
-        window.addEventListener('load', async () => {
-            await initMap();
-            const surveyData = JSON.parse(localStorage.getItem('surveyData'));
-            
-            if (surveyData) {
-                try {
-                    const response = await fetch("/api/recommend", { 
-                        method: "POST", 
-                        headers: { "Content-Type": "application/json" }, 
-                        body: JSON.stringify(surveyData) 
-                    });
-                    const data = await response.json();
-                    
-                    if (data.spots) {
-                        localStorage.setItem('currentSpots', JSON.stringify(data.spots));
-                        renderResult(data.spots);
-                        drawRouteOnMap(data.spots);
-                    } else {
-                        document.getElementById('result-container').innerHTML = "<p class='text-center text-gray-500'>No spots found matching your vibe.</p>";
-                    }
-                } catch (error) {
-                    console.error(error);
-                    document.getElementById('result-container').innerHTML = "<p class='text-center text-red-500'>Error loading route.</p>";
-                }
-            } else {
-                document.getElementById('result-container').innerHTML = "<p class='text-center text-gray-500'>Please complete the survey first.</p>";
-            }
-        });
-
         // saveRoute 함수 수정 (기존 script.js의 함수를 오버라이드)
         function saveRoute() {
             const STORAGE_KEY = 'ktrip_saved_routes';
@@ -235,12 +332,17 @@
                 'Check your saved trips anytime', 
                 '💚',
                 true,
-                '확인',
-                () => {
-                    // 버튼 클릭 시 saved.html로 이동 (선택사항)
-                    // location.href = 'saved.html';
-                }
+                '확인'
             );
+        }
+
+        function startNewTrip() {
+            // 1. 과거의 모든 기억 삭제
+            localStorage.removeItem('currentSpots');
+            localStorage.removeItem('surveyData');
+            
+            // 2. 설문조사 페이지로 이동
+            location.href = '/survey.html'; // 경로 수정 (서버 설정에 따라 /survey 또는 survey.html)
         }
     </script>
 </body>
