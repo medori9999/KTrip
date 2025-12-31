@@ -3,259 +3,377 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>K-Trip | Trace Your Vibe</title>
+    <title>K-Trip | Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap');
-        :root { --accent: #6366f1; --bg: #F3F4F6; }
+        /* [보존] 팀원분의 디자인 스타일 + 프로젝트 공통 스타일 */
         body { font-family: 'Pretendard', sans-serif; background-color: #e5e7eb; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .mobile-container { width: 375px; height: 812px; background-color: var(--bg); position: relative; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border-radius: 40px; border: 8px solid #1f2937; }
-        .screen { position: absolute; inset: 0; transition: transform .5s cubic-bezier(0.4, 0, 0.2, 1), opacity .5s ease; overflow-y: auto; background-color: var(--bg); padding-bottom: 60px; }
-        .hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
-        .section { background: white; border-radius: 24px; padding: 20px; margin: 0 16px 16px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .question { font-size: 14px; font-weight: 700; margin: 16px 0 8px; color: #1f2937; }
-        .option { border: 1.5px solid #f3f4f6; border-radius: 16px; padding: 12px; font-size: 13px; text-align: center; cursor: pointer; transition: all 0.2s; background: white; width: 100%; color: #4b5563; font-weight: 500; }
-        .option.selected { border-color: var(--accent); background: #eef2ff; font-weight: 700; color: var(--accent); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1); }
-        .modal-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(8px); }
-        .modal { background: white; width: 85%; border-radius: 30px; padding: 25px; transform: scale(0.9); transition: transform 0.3s; }
-        .line-draw { border-left: 2px dashed #D1D5DB; margin-left: 15px; height: 40px; }
-        .screen::-webkit-scrollbar { display: none; }
         
-        /* 로딩 스피너 */
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        /* 모달 스타일 (팀원 코드 기반 + z-index 수정) */
+        #overlay { z-index: 100; }
+        #modal { z-index: 110; }
+
+        /* ============================================================
+           [수정] 카메라 버튼 및 라벨 스타일
+           ============================================================ */
+
+        /* 1. 카메라 버튼 (기존 유지) */
+        .fab-camera {
+            position: absolute;
+            bottom: 100px; 
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: #4f46e5; 
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+            z-index: 90; 
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .fab-camera:active { transform: scale(0.9); }
+
+        /* 2. [추가] Scan Menu 라벨 (버튼 바로 위에 고정) */
+        .fab-label {
+            position: absolute;
+            bottom: 154px; /* 버튼(100) + 높이(50) + 간격(10) */
+            right: 13px;   /* 버튼 중앙에 맞게 위치 조정 */
+            background-color: #1f2937; /* 진한 회색 */
+            color: white;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            z-index: 91; /* 버튼보다 위에 보이도록 */
+            pointer-events: none; /* 클릭 방해 안 하게 */
+        }
+        
+        /* 라벨 꼬리 (아래쪽 화살표) */
+        .fab-label::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 4px 4px 0 4px;
+            border-style: solid;
+            border-color: #1f2937 transparent transparent transparent;
+        }
+
+        /* 음식 분석 결과 모달 (Bottom Sheet) */
+        .food-modal-bg {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.6); 
+            display: none; align-items: flex-end; justify-content: center; 
+            z-index: 200; 
+            backdrop-filter: blur(4px);
+        }
+        .food-modal {
+            background: white; width: 100%; border-top-left-radius: 30px; border-top-right-radius: 30px;
+            padding: 30px 25px 100px 25px; 
+            animation: slideUp 0.3s ease-out;
+            max-height: 85vh; overflow-y: auto;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        /* 로딩 애니메이션 */
+        .loader {
+            border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; 
+            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div class="mobile-container">
-        <section id="scr-landing" class="screen flex flex-col justify-center items-center bg-gradient-to-br from-rose-100 via-pink-100 to-indigo-100 text-gray-800 p-8 text-center z-50">
-            <h1 class="text-5xl font-black mb-2 text-indigo-700 italic tracking-tighter">K-Trip</h1>
-            <p class="text-sm leading-relaxed mb-8 text-gray-600 font-medium italic">Find your <span class="font-bold border-b-2 border-indigo-400">K-Soul</span></p>
-            <button onclick="nextScreen('scr-landing', 'scr-survey')" class="bg-indigo-500 hover:bg-indigo-600 transition text-white font-bold px-10 py-3 rounded-2xl shadow-md active:scale-95">Start My Trip</button>
-        </section>
-
-        <section id="scr-survey" class="screen hidden z-40 pt-8">
-            <header class="text-center mb-8 px-6">
-                <h2 class="text-xl font-black text-gray-800 italic">Travel Style</h2>
-            </header>
-
-            <div class="section">
-                <div class="question">Which area to explore?</div>
-                <div id="q-area" class="grid grid-cols-1 gap-2">
-                    <div class="option" onclick="toggleSingle(this)">Auto-detect my location</div>
-                    <div class="option" onclick="toggleSingle(this)">Choose manually</div>
-                </div>
-                <div class="question">How long for itinerary?</div>
-                <div id="q-duration" class="grid grid-cols-2 gap-2">
-                    <div class="option" onclick="toggleSingle(this)">Half day</div>
-                    <div class="option" onclick="toggleSingle(this)">1 day</div>
-                    <div class="option" onclick="toggleSingle(this)">2 days</div>
-                    <div class="option" onclick="toggleSingle(this)">3 days+</div>
-                </div>
-            </div>
-
-            <div class="section">
-                <div class="question">Your travel pace</div>
-                <div id="q-pace" class="grid grid-cols-1 gap-2">
-                    <div class="option" onclick="toggleSingle(this)">Relaxed and slow</div>
-                    <div class="option" onclick="toggleSingle(this)">Balanced pace</div>
-                    <div class="option" onclick="toggleSingle(this)">See as much as possible</div>
-                </div>
-                <div class="question">Are you traveling alone?</div>
-                <div id="q-companion" class="grid grid-cols-2 gap-2">
-                    <div class="option" onclick="toggleSingle(this)">Solo</div>
-                    <div class="option" onclick="toggleSingle(this)">With others</div>
-                </div>
-            </div>
-
-            <div class="section">
-                <div class="question">What are you into? (Multi)</div>
-                <div id="q-interests" class="grid grid-cols-2 gap-2">
-                    <div class="option" onclick="openSearch(this, 'K-Pop')">K-Pop</div>
-                    <div class="option" onclick="openSearch(this, 'K-Drama')">K-Drama</div>
-                    <div class="option" onclick="openSearch(this, 'K-Movie')">K-Movie</div>
-                    <div class="option" onclick="openSearch(this, 'K-Show')">K-Show</div>
-                </div>
-                <div class="question">How much K-content do you want?</div>
-                <div id="q-ratio" class="grid grid-cols-1 gap-2">
-                    <div class="option" onclick="toggleSingle(this)">Mostly K-content</div>
-                    <div class="option" onclick="toggleSingle(this)">About half</div>
-                    <div class="option" onclick="toggleSingle(this)">Just 1–2 spots</div>
-                </div>
-            </div>
-
-            <div class="section">
-                <div class="question">Food preference?</div>
-                <div id="q-food" class="grid grid-cols-1 gap-2">
-                    <div class="option" onclick="toggleSingle(this)">Safe & familiar</div>
-                    <div class="option" onclick="toggleSingle(this)">Spicy is okay</div>
-                    <div class="option" onclick="toggleSingle(this)">Love local food</div>
-                </div>
-                <div class="question">Include cafés?</div>
-                <div id="q-cafe" class="grid grid-cols-2 gap-2">
-                    <div class="option" onclick="toggleSingle(this)">Definitely</div>
-                    <div class="option" onclick="toggleSingle(this)">Nice to have</div>
-                    <div class="option" onclick="toggleSingle(this)">Not necessary</div>
-                </div>
-            </div>
-
-            <div class="section">
-                <div class="question">Is social media important?</div>
-                <div id="q-photo" class="grid grid-cols-1 gap-2">
-                    <div class="option" onclick="toggleSingle(this)">Very important</div>
-                    <div class="option" onclick="toggleSingle(this)">Sometimes</div>
-                    <div class="option" onclick="toggleSingle(this)">Not important</div>
-                </div>
-                
-                <button onclick="submitSurvey()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg mt-10 active:scale-95 transition-transform">
-                    View Recommended Route
-                </button>
-            </div>
-        </section>
-
-        <section id="scr-result" class="screen hidden z-30 pt-10 px-6">
-            <h2 class="text-3xl font-black mb-2 tracking-tighter">Your <span class="text-indigo-600">Soul Route</span></h2>
-            <p class="text-xs text-gray-400 mb-8">We found the perfect K-spots for you.</p>
+    <div class="mobile-container relative"> 
+        <section class="screen active bg-[#f7f7fb]">
             
-            <div id="result-container" class="space-y-2 mt-4">
-                <div class="loader"></div> </div>
+            <div class="relative m-4 rounded-3xl overflow-hidden bg-gradient-to-br from-pink-500 to-indigo-500 text-white shadow-lg">
+                <div class="p-6">
+                    <h1 class="text-2xl font-bold leading-tight">Follow your favorite <br>K-content</h1>
+                    <p class="mt-2 text-sm opacity-90 font-medium">We’ll guide your journey in Korea</p>
+                    <div class="mt-5 flex gap-3">
+                        <button onclick="location.href='survey.html'" class="flex-1 bg-white/20 backdrop-blur-md border border-white/30 font-bold py-3 rounded-full hover:bg-white/30 transition active:scale-95">
+                            Start My Trip <i class="fa-solid fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-            <div class="mt-10">
-                <button onclick="location.reload()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl">Start New Journey</button>
+            <div class="px-4 pt-2">
+                <h2 class="font-bold text-lg mb-3 text-gray-800">Top K-Contents for You</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white rounded-2xl shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition">
+                        <img src="https://static.wikia.nocookie.net/enhypen/images/d/d6/DESIRE_-_UNLEASH.jpg" class="w-full h-[120px] object-cover" />
+                        <p class="text-xs font-bold text-center py-2 text-gray-700">K-POP</p>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition">
+                        <img src="https://koreajoongangdaily.joins.com/data/photo/2025/12/04/973917eb-17cb-4580-b845-c5f15f7e764c.jpg" class="w-full h-[120px] object-cover" />
+                        <p class="text-xs font-bold text-center py-2 text-gray-700">K-Show</p>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition">
+                        <img src="https://images.justwatch.com/poster/334822828/s718/genie-make-a-wish.jpg" class="w-full h-[120px] object-cover" />
+                        <p class="text-xs font-bold text-center py-2 text-gray-700">K-Drama</p>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition">
+                        <img src="https://m.media-amazon.com/images/I/81Mtr7elTnL._AC_SY879_.jpg" class="w-full h-[120px] object-cover" />
+                        <p class="text-xs font-bold text-center py-2 text-gray-700">K-Movie</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-4 mt-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="font-bold text-lg text-gray-800">Korean Etiquette Tips 💡</h2>
+                    <span class="text-[10px] text-gray-400 font-bold bg-white px-2 py-1 rounded-full shadow-sm">Tap icons</span>
+                </div>
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="openTip('restaurant')" class="bg-white rounded-2xl shadow-sm py-4 flex flex-col items-center gap-1 hover:bg-gray-50 transition active:scale-95">
+                        <span class="text-2xl">🍽</span><span class="text-[10px] font-bold text-gray-600">Food</span>
+                    </button>
+                    <button onclick="openTip('cafe')" class="bg-white rounded-2xl shadow-sm py-4 flex flex-col items-center gap-1 hover:bg-gray-50 transition active:scale-95">
+                        <span class="text-2xl">☕</span><span class="text-[10px] font-bold text-gray-600">Café</span>
+                    </button>
+                    <button onclick="openTip('transport')" class="bg-white rounded-2xl shadow-sm py-4 flex flex-col items-center gap-1 hover:bg-gray-50 transition active:scale-95">
+                        <span class="text-2xl">🚇</span><span class="text-[10px] font-bold text-gray-600">Transit</span>
+                    </button>
+                    <button onclick="openTip('social')" class="bg-white rounded-2xl shadow-sm py-4 flex flex-col items-center gap-1 hover:bg-gray-50 transition active:scale-95">
+                        <span class="text-2xl">🙋‍♀️</span><span class="text-[10px] font-bold text-gray-600">Social</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="px-6 mt-6 pb-24"> <h2 class="font-bold text-lg mb-3 text-gray-800">Most Popular K-Routes</h2>
+                <div class="space-y-4">
+                    <div class="bg-white rounded-3xl shadow-sm p-4 flex gap-4 items-center border border-gray-100 cursor-pointer hover:border-indigo-100 transition">
+                        <img src="https://res.cloudinary.com/kyte/image/upload/w_1080,h_1560,q_auto,f_auto,e_sharpen:50,c_fill,g_auto/v1636358904/hotel/square_lab/KR/65339_46" class="w-[70px] h-[70px] rounded-2xl object-cover shadow-sm" />
+                        <div class="flex-1">
+                            <p class="text-[10px] text-pink-500 font-black uppercase tracking-wider mb-1">K-Drama Spot</p>
+                            <h3 class="text-xs font-bold text-gray-700 leading-relaxed">N Seoul Tower <br>→ Namsan Donkatsu <br>→ Hanok Village</h3>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-300"></i>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <div id="modal-search" class="modal-bg">
-            <div class="modal shadow-2xl">
-                <h3 class="text-xl font-black mb-2 text-gray-800 italic">Who is your Bias?</h3>
-                <p id="modal-cat" class="text-[10px] text-gray-400 mb-4"></p>
-                <input id="input-search" type="text" class="w-full bg-gray-100 border-none p-4 rounded-xl mb-4 outline-none font-bold" placeholder="e.g. BTS, NewJeans...">
-                <button onclick="closeSearch()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-black shadow-lg">Confirm</button>
+        <div id="overlay" onclick="closeTip()" class="hidden absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"></div>
+        <div id="modal" class="hidden absolute inset-0 flex items-center justify-center px-6 pointer-events-none">
+            <div class="bg-white rounded-[32px] w-full max-w-[320px] p-6 shadow-2xl pointer-events-auto transform scale-95 transition-transform duration-200">
+                <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                    <h3 id="modalTitle" class="font-black text-xl text-gray-800"></h3>
+                    <button onclick="closeTip()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="modalContent" class="text-sm text-gray-600 space-y-3 leading-relaxed"></div>
             </div>
         </div>
 
+        <div class="fab-label">Scan Menu</div>
+
+        <div class="fab-camera" onclick="triggerCamera()">
+            <i class="fa-solid fa-camera"></i>
+        </div>
+        
+        <input type="file" id="camera-input" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
+
+        <div id="result-modal" class="food-modal-bg" onclick="if(event.target === this) closeResult()">
+            <div class="food-modal">
+                <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6"></div>
+                
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-black">Menu Analysis</h3>
+                    <button onclick="closeResult()" class="text-gray-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+
+                <div id="preview-container" class="mb-6 hidden rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50">
+                    <img id="preview-image" src="" class="w-full h-48 object-cover" />
+                </div>
+                
+                <div id="analysis-loader" class="text-center py-10">
+                    <div class="loader mx-auto mb-4"></div>
+                    <p class="text-indigo-600 font-bold animate-pulse text-sm">AI is reading the menu...</p>
+                    <p class="text-gray-400 text-xs mt-2">Connecting to Azure...</p>
+                </div>
+
+                <div id="food-list" class="space-y-3 hidden"></div>
+            </div>
+        </div>
+        <nav class="bottom-nav">
+            <a href="/" class="nav-item active-tab"> 
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </a>
+            
+            <a href="/chat.html" class="nav-item">
+                <i class="fa-solid fa-comment-dots"></i>
+                <span>Chat</span>
+            </a>
+            
+            <a href="/saved.html" class="nav-item">
+                <i class="fa-solid fa-heart"></i>
+                <span>Saved</span>
+            </a>
+            
+            <a href="/photo.html" class="nav-item">
+    <i class="fa-solid fa-book-open"></i>
+    <span>Log</span>
+</a>
+        </nav>
     </div>
 
+    <script src="script.js"></script>
     <script>
-        // 화면 전환 함수
-        function nextScreen(curr, next) {
-            document.getElementById(curr).classList.add('hidden');
-            document.getElementById(next).classList.remove('hidden');
-            document.getElementById(next).scrollTo(0,0);
-        }
+        // [기존] 에티켓 팁 로직
+        const modal = document.getElementById("modal");
+        const overlay = document.getElementById("overlay");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalContent = document.getElementById("modalContent");
 
-        // 단일 선택 로직
-        function toggleSingle(el) {
-            const parent = el.parentElement;
-            parent.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
-            el.classList.add('selected');
-        }
-
-        // 검색 모달 관련 로직
-        let customInterests = []; // 직접 입력한 키워드 저장용 (예: BTS)
-
-        function openSearch(el, cat) {
-            el.classList.toggle('selected');
-            if(el.classList.contains('selected')) {
-                document.getElementById('modal-cat').innerText = `Tracing your favorite ${cat}...`;
-                document.getElementById('modal-search').style.display = 'flex';
-                setTimeout(() => { document.querySelector('.modal').style.transform = 'scale(1)'; }, 10);
+        const tips = {
+            restaurant: {
+                title: "🍽 Restaurant",
+                content: `<p class='flex items-start gap-2'><span class='text-indigo-500'>●</span><span><b>Calling staff is normal.</b><br>Say “Jeogiyo” (Excuse me) or press the bell on the table.</span></p>
+                          <p class='flex items-start gap-2'><span class='text-indigo-500'>●</span><span><b>Side dishes are free!</b><br>You can ask for refills (Kimchi, etc).</span></p>
+                          <p class='flex items-start gap-2'><span class='text-indigo-500'>●</span><span><b>Pay at the counter</b><br>when you leave, not at the table.</span></p>`
+            },
+            cafe: {
+                title: "☕ Café",
+                content: `<p class='flex items-start gap-2'><span class='text-pink-500'>●</span><span><b>Self-service is common.</b><br>Pick up your drink when the buzzer rings.</span></p>
+                          <p class='flex items-start gap-2'><span class='text-pink-500'>●</span><span><b>Return your tray.</b><br>Bring empty cups to the return counter.</span></p>`
+            },
+            transport: {
+                title: "🚇 Transit",
+                content: `<p class='flex items-start gap-2'><span class='text-green-500'>●</span><span><b>Stand right, walk left</b><br>on escalators.</span></p>
+                          <p class='flex items-start gap-2'><span class='text-green-500'>●</span><span><b>Priority Seats</b><br>Pink seats are for pregnant women, ends are for elderly.</span></p>`
+            },
+            social: {
+                title: "🙋‍♀️ Social",
+                content: `<p class='flex items-start gap-2'><span class='text-yellow-500'>●</span><span><b>Receiving with two hands</b><br>shows respect when giving/taking cards or money.</span></p>
+                          <p class='flex items-start gap-2'><span class='text-yellow-500'>●</span><span><b>Take off shoes</b><br>when entering someone's home.</span></p>`
             }
+        };
+
+        function openTip(type) {
+            modalTitle.innerHTML = tips[type].title;
+            modalContent.innerHTML = tips[type].content;
+            overlay.classList.remove("hidden");
+            modal.classList.remove("hidden");
+            setTimeout(() => { modal.firstElementChild.style.transform = "scale(1)"; }, 10);
         }
 
-        function closeSearch() {
-            const val = document.getElementById('input-search').value;
-            if(val) {
-                customInterests.push(val); // 입력값 저장
-            }
-            document.getElementById('input-search').value = ""; // 초기화
-            document.querySelector('.modal').style.transform = 'scale(0.9)';
-            setTimeout(() => { document.getElementById('modal-search').style.display = 'none'; }, 200);
+        function closeTip() {
+            modal.firstElementChild.style.transform = "scale(0.95)";
+            setTimeout(() => {
+                overlay.classList.add("hidden");
+                modal.classList.add("hidden");
+            }, 100);
         }
 
-        // [핵심] 설문 데이터 수집 및 서버 전송 함수
-        async function submitSurvey() {
-            // 1. 화면 넘기기 (로딩화면 보여주기)
-            nextScreen('scr-survey', 'scr-result');
-            const resultContainer = document.getElementById('result-container');
-            resultContainer.innerHTML = '<div class="loader"></div><p class="text-center text-gray-400 text-xs">AI is planning your trip...</p>';
+        // ============================================================
+        // [추가] 카메라 및 음식 분석 스크립트 (미리보기 포함)
+        // ============================================================
 
-            // 2. 선택된 값들 긁어모으기
-            const getSelectedText = (id) => {
-                const el = document.querySelector(`#${id} .selected`);
-                return el ? el.innerText : "Not selected";
+        function triggerCamera() {
+            document.getElementById('camera-input').click();
+        }
+
+        function closeResult() {
+            document.getElementById('result-modal').style.display = 'none';
+        }
+
+        async function handleImageUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // UI 준비
+            const modal = document.getElementById('result-modal');
+            const loader = document.getElementById('analysis-loader');
+            const list = document.getElementById('food-list');
+            
+            // [추가] 이미지 미리보기 기능
+            const previewContainer = document.getElementById('preview-container');
+            const previewImage = document.getElementById('preview-image');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewContainer.classList.remove('hidden'); // 이미지 보이기
             };
+            reader.readAsDataURL(file);
 
-            // 관심사 수집 (버튼 선택된 것들 + 직접 입력한 것들)
-            let selectedInterests = [];
-            document.querySelectorAll('#q-interests .selected').forEach(el => selectedInterests.push(el.innerText));
-            selectedInterests = selectedInterests.concat(customInterests);
+            modal.style.display = 'flex';
+            loader.style.display = 'block';
+            list.style.display = 'none';
+            list.innerHTML = ''; 
 
-            const surveyData = {
-                target_area: getSelectedText('q-area'),
-                duration: getSelectedText('q-duration'),
-                pace: getSelectedText('q-pace'),
-                companion: getSelectedText('q-companion'),
-                interests: selectedInterests,
-                k_content_ratio: getSelectedText('q-ratio'),
-                food_preference: getSelectedText('q-food'),
-                need_cafe: getSelectedText('q-cafe'),
-                photo_priority: getSelectedText('q-photo'),
-                record_method: "Instagram-style summary" // 임시 고정
-            };
-
-            console.log("🚀 전송할 데이터:", surveyData);
+            const formData = new FormData();
+            formData.append('file', file);
 
             try {
-                // 3. 파이썬 서버로 전송 (FastAPI)
-                const response = await fetch("/api/recommend", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(surveyData)
+                // 백엔드 호출
+                const response = await fetch('/api/analyze-menu', {
+                    method: 'POST',
+                    body: formData
                 });
-
+                
                 const data = await response.json();
-                console.log("✅ AI 응답:", data);
-
-                // 4. 결과 화면 그리기
-                renderResult(data.spots);
+                renderFoodResult(data);
 
             } catch (error) {
-                console.error("에러:", error);
-                resultContainer.innerHTML = `<p class="text-center text-red-500">Failed to load recommendations.<br>${error}</p>`;
+                console.error(error);
+                list.innerHTML = `<div class="text-center py-10 text-red-500 font-bold">Analysis Failed.<br><span class="text-xs font-normal text-gray-400">Please try again.</span></div>`;
+                loader.style.display = 'none';
+                list.style.display = 'block';
             }
+            
+            input.value = '';
         }
 
-        // [핵심] 결과를 예쁜 카드로 만들어주는 함수
-        function renderResult(spots) {
-            const container = document.getElementById('result-container');
-            container.innerHTML = ""; // 로딩 제거
+        // JSON -> HTML 변환
+        function renderFoodResult(data) {
+            const loader = document.getElementById('analysis-loader');
+            const list = document.getElementById('food-list');
 
-            if (!spots || spots.length === 0) {
-                container.innerHTML = "<p class='text-center text-gray-500'>No spots found based on your preferences.</p>";
+            loader.style.display = 'none';
+            list.style.display = 'block';
+
+            if (!data.foods || data.foods.length === 0) {
+                list.innerHTML = `<p class="text-center text-gray-500 py-10">No text detected.<br>Try taking a clearer photo.</p>`;
                 return;
             }
 
-            spots.forEach((spot, index) => {
-                // 카드 HTML 생성
-                const cardHtml = `
-                <div class="flex gap-4">
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xs">${index + 1}</div>
-                        ${index !== spots.length - 1 ? '<div class="line-draw h-full"></div>' : ''}
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl flex-1 mb-4 border border-gray-100 shadow-sm">
-                        <h4 class="font-bold text-sm text-indigo-900">${spot.name}</h4>
-                        <p class="text-[10px] text-gray-500 mt-1">${spot.description}</p>
-                        <div class="mt-2 text-[10px] font-bold text-indigo-400 bg-indigo-50 inline-block px-2 py-1 rounded-md">
-                            ${spot.media_title || 'K-Place'}
+            data.foods.forEach(food => {
+                let spicyIcon = '';
+                for(let i=0; i<food.spicy_level; i++) spicyIcon += '🌶️';
+                if(food.spicy_level === 0) spicyIcon = '👶'; 
+
+                const item = document.createElement('div');
+                item.className = 'bg-gray-50 p-4 rounded-2xl border border-gray-100 flex gap-4 items-start';
+                item.innerHTML = `
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start mb-1">
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-lg">${food.english}</h4>
+                                <span class="text-xs text-indigo-500 font-bold">${food.korean}</span>
+                            </div>
+                            <span class="text-sm font-bold text-gray-700">${food.price ? '₩'+food.price : ''}</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-2 leading-relaxed">${food.description}</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-[10px] bg-white border border-gray-200 px-2 py-1 rounded-md text-gray-600">Spicy: ${spicyIcon}</span>
                         </div>
                     </div>
-                </div>
                 `;
-                container.innerHTML += cardHtml;
+                list.appendChild(item);
             });
         }
     </script>

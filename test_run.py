@@ -17,7 +17,7 @@ def run_test():
     print("-" * 50)
 
     #  테스트 질문 설정
-    user_query = "방탄소년단이 방문한 맛집 하루코스 만들어줘"    
+    user_query = "Make 2 courses for the places that BTS visited."    
     print(f" 사용자 질문: {user_query}")
     print(" AI와 DB가 통신 중입니다... 잠시만 기다려주세요.")
 

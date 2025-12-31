@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>K-Trip | Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap" rel="stylesheet" />
+    <style>
+        /* [보존] 원본 스타일 시트 */
+        * { box-sizing: border-box; }
+        :root { --accent: #6366f1; --bg: #F3F4F6; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #e5e7eb; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .mobile-container { width: 375px; height: 812px; background-color: var(--bg); position: relative; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border-radius: 40px; border: 8px solid #1f2937; }
+        
+        .screen { position: absolute; inset: 0; background-color: white; padding-bottom: 90px; }
+        .chat-screen-inner { display: flex; flex-direction: column; height: 100%; }
+        
+        /* [수정] 헤더에 뒤로가기 버튼 배치를 위해 flex 수정 */
+        .chat-header { 
+            padding: 20px; background: white; border-bottom: 1px solid #f3f4f6; 
+            font-weight: 700; display: flex; align-items: center; justify-content: space-between; 
+            font-size: 16px; color: #1f2937;
+        }
+        .back-btn { cursor: pointer; font-size: 18px; color: #4b5563; margin-right: 10px; padding: 5px; }
+
+        .chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background: #f9fafb; }
+        .chat-footer { padding: 15px 20px; background: white; border-top: 1px solid #f3f4f6; }
+        
+        .chat-bubble { max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.5; margin-bottom: 4px; position: relative; word-break: break-word; }
+        .chat-user { background-color: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-ai { background-color: white; color: #374151; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
+
+        /* [추가] 채팅 내 '결과 보기' 버튼 스타일 */
+        .action-btn {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 8px 16px;
+            background-color: #4f46e5;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 20px;
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+            transition: 0.2s;
+        }
+        .action-btn:active { transform: scale(0.95); }
+
+        /* 네비게이션 바 디자인 완벽 복구 */
+        .bottom-nav { 
+            position: absolute; bottom: 0; left: 0; right: 0; 
+            height: 85px; background: white; 
+            border-top: 1px solid #f3f4f6; 
+            display: flex; justify-content: space-around; align-items: flex-start; 
+            padding-top: 15px; z-index: 80;
+            border-bottom-left-radius: 32px; border-bottom-right-radius: 32px; 
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #9ca3af; text-decoration: none; width: 60px; transition: color 0.2s; }
+        .nav-item i { font-size: 20px; } 
+        .nav-item span { font-size: 10px; font-weight: 500; } 
+        .nav-item.active-tab { color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <section id="scr-chat" class="screen bg-white">
+            <div class="chat-screen-inner">
+                <div class="chat-header">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-chevron-left back-btn" onclick="location.href='result.html'"></i>
+                        <span>AI Planner</span>
+                    </div>
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                </div>
+
+                <div id="chat-messages" class="chat-body">
+                    <div class="chat-bubble chat-ai">
+                        Hello! Do you want to modify your plan?<br>
+                        Tell me what to change! (e.g. "Add a cafe")
+                    </div>
+                </div>
+
+                <div class="chat-footer">
+                    <div class="flex gap-2 items-center bg-gray-100 px-4 py-2 rounded-full border border-gray-200 focus-within:border-indigo-500 transition-colors">
+                        <input id="chat-input" type="text" class="bg-transparent flex-1 outline-none text-sm text-gray-700" placeholder="Type a request..." onkeypress="if(event.key==='Enter') sendMessage()">
+                        <button onclick="sendMessage()" class="text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-indigo-50 transition"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <nav class="bottom-nav">
+            <a href="/" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+            <a href="/chat.html" class="nav-item active-tab"><i class="fa-solid fa-comment-dots"></i><span>Chat</span></a>
+            <a href="/saved.html" class="nav-item"><i class="fa-solid fa-heart"></i><span>Saved</span></a>
+            <a href="/photo.html" class="nav-item">
+    <i class="fa-solid fa-book-open"></i>
+    <span>Log</span>
+</a>
+        </nav>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            // 1. 사용자 메시지 표시
+            addChatBubble(message, 'user');
+            input.value = "";
+            
+            // 2. 로딩 메시지 표시
+            const currentSpots = JSON.parse(localStorage.getItem('currentSpots')) || [];
+            const loadingBubble = addChatBubble("Thinking...", 'ai');
+            
+            try {
+                // 3. 서버 요청
+                const response = await fetch("/api/modify", { 
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" }, 
+                    body: JSON.stringify({ current_spots: currentSpots, user_request: message }) 
+                });
+                const data = await response.json();
+                
+                loadingBubble.remove();
+                
+                if (data.spots) {
+                    // 4. 데이터 업데이트
+                    localStorage.setItem('currentSpots', JSON.stringify(data.spots));
+                    
+                    // [핵심] 수정 완료 메시지와 함께 '결과 보기' 버튼 표시
+                    addChatBubble(`
+                        Done! I've updated your plan. ✨<br>
+                        <button onclick="location.href='result.html'" class="action-btn">
+                            Check Plan <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    `, 'ai');
+                } else {
+                    addChatBubble("Sorry, I couldn't understand. Try again.", 'ai');
+                }
+            } catch (error) { 
+                loadingBubble.innerText = "Error occurred."; 
+                console.error(error);
+            }
+        }
+
+        function addChatBubble(text, type) { 
+            const container = document.getElementById('chat-messages'); 
+            const bubble = document.createElement('div'); 
+            bubble.className = `chat-bubble chat-${type}`; 
+            bubble.innerHTML = text; // innerHTML을 써야 버튼 태그가 먹힘
+            container.appendChild(bubble); 
+            container.scrollTop = container.scrollHeight; 
+            return bubble; 
+        }
+    </script>
+</body>
+</html>

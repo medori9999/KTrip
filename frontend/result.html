@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>K-Trip | Result</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Day 탭 디자인 */
+        .day-tab {
+            padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700;
+            background-color: white; color: #6b7280; border: 1px solid #e5e7eb;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+        }
+        .day-tab.active {
+            background-color: #6366f1; color: white; border-color: #6366f1;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+        }
+        /* 스크롤바 숨기기 */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <section id="scr-result" class="screen active pt-8 px-5 pb-24">
+            <h2 class="text-2xl font-black mb-1 tracking-tight">Your <span class="text-indigo-600">Soul Route</span></h2>
+            <p class="text-xs text-gray-400 mb-6">Explore your personalized K-Journey.</p>
+            
+            <div id="day-tabs-container" class="flex gap-2 overflow-x-auto mb-4 pb-2 scrollbar-hide"></div>
+
+            <div id="result-container" class="space-y-3 min-h-[100px]">
+                <div id="loading-spinner" class="loader mx-auto mt-10"></div>
+                <p id="loading-text" class="text-center text-gray-400 text-xs mt-2">AI is designing your trip...</p>
+            </div>
+
+            <div id="map-container" class="mt-6 w-full h-64 bg-gray-100 rounded-2xl overflow-hidden relative border border-gray-200 shadow-sm"></div>
+            
+            <div class="mt-6 flex gap-3">
+    <button onclick="saveRoute()" class="flex-1 bg-white text-rose-500 border border-rose-100 py-3 rounded-xl font-bold shadow-sm active:scale-95 transition-transform text-sm flex items-center justify-center gap-1">
+        <i class="fa-solid fa-heart"></i> Save
+    </button>
+
+    <button onclick="startNewTrip()" class="flex-1 bg-slate-900 text-white py-3 rounded-xl font-bold shadow-lg active:scale-95 transition-transform text-sm">
+        New Trip
+    </button>
+</div>
+        </section>
+
+        <nav class="bottom-nav">
+            <a href="/" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+            <a href="/chat.html" class="nav-item active-tab"><i class="fa-solid fa-comment-dots"></i><span>Chat</span></a>
+            <a href="/saved.html" class="nav-item"><i class="fa-solid fa-heart"></i><span>Saved</span></a>
+            <a href="/photo.html" class="nav-item"><i class="fa-solid fa-book-open"></i>
+    <span>Log</span>
+</a>
+        </nav>
+    </div>
+
+    <script>
+        ((g)=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await(a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):(d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n)))})({ key: "AIzaSyCupkJq4a5oOMYWbPE630TcPuQq9dex4vw", v: "weekly", language: "en" });
+    </script>
+    <script src="script.js"></script>
+    
+    <script>
+        // 1. 서버에서 API 키를 먼저 가져옵니다.
+        async function startWithConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                const GOOGLE_MAPS_KEY = config.googleMapsKey;
+
+                // 2. 받아온 키를 사용하여 구글 맵 로더 실행
+                ((g)=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await(a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):(d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n)))})({ 
+                    key: GOOGLE_MAPS_KEY, 
+                    v: "weekly", 
+                    language: "en" 
+                });
+
+                // 3. 키 로딩이 완료된 후, 기존의 메인 로직 실행
+                initializeApp();
+
+            } catch (error) {
+                console.error("API 키를 불러오는 중 오류 발생:", error);
+            }
+        }
+
+        // 실행
+        startWithConfig();
+    </script>
+
+    <script src="script.js"></script>
+    
+    <script>
+        let allSpotsData = []; 
+
+        // 기존 window 'load' 이벤트를 함수로 분리하여 키 로드 후에 실행되도록 함
+        async function initializeApp() {
+            await initMap();
+
+            // 1. 저장된 데이터 확인
+            const existingPlan = localStorage.getItem('currentSpots');
+            const surveyData = JSON.parse(localStorage.getItem('surveyData'));
+
+            if (existingPlan) {
+                console.log("✅ 저장된 플랜 로드");
+                processAndRender(JSON.parse(existingPlan));
+            } else if (surveyData) {
+                console.log("🚀 AI 추천 요청");
+                try {
+                    const response = await fetch("/api/recommend", { 
+                        method: "POST", 
+                        headers: { "Content-Type": "application/json" }, 
+                        body: JSON.stringify(surveyData) 
+                    });
+                    const data = await response.json();
+                    
+                    if (data.spots) {
+                        localStorage.setItem('currentSpots', JSON.stringify(data.spots));
+                        processAndRender(data.spots);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    document.getElementById('result-container').innerHTML = "<p class='text-center text-red-500'>Error.</p>";
+                }
+            } else {
+                location.href = 'survey.html';
+            }
+        }
+
+        // --- 아래 processAndRender 등 기존 함수들은 동일하므로 생략 (그대로 두시면 됩니다) ---
+        function processAndRender(spots) {
+            const spotsPerDay = 5; 
+            allSpotsData = spots.map((spot, index) => {
+                if (!spot.day) {
+                    spot.day = Math.floor(index / spotsPerDay) + 1;
+                }
+                return spot;
+            });
+            document.getElementById('loading-spinner').style.display = 'none';
+            document.getElementById('loading-text').style.display = 'none';
+            createDayTabs();
+            renderDay(1);
+        }
+
+        function createDayTabs() {
+            const container = document.getElementById('day-tabs-container');
+            container.innerHTML = ''; 
+            const maxDay = Math.max(...allSpotsData.map(s => s.day));
+            for (let i = 1; i <= maxDay; i++) {
+                const btn = document.createElement('button');
+                btn.className = `day-tab ${i === 1 ? 'active' : ''}`;
+                btn.innerText = `Day ${i}`;
+                btn.onclick = () => renderDay(i);
+                container.appendChild(btn);
+            }
+        }
+
+        function renderDay(day) {
+            document.querySelectorAll('.day-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText === `Day ${day}`);
+            });
+            const dailySpots = allSpotsData.filter(s => s.day === day);
+            renderResult(dailySpots); 
+            drawRouteOnMap(dailySpots);
+        }
+
+        function startNewTrip() {
+            localStorage.removeItem('currentSpots');
+            localStorage.removeItem('surveyData');
+            location.href = '/survey'; 
+        }
+    </script> 
+}
+    </script>
+</body>

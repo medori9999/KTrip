@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>K-Trip | Photo Maker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <style>
+      /* [1. 전체 레이아웃] */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      :root {
+        --accent: #6366f1;
+        --bg: #f3f4f6;
+      }
+      body {
+        font-family: "Pretendard", sans-serif;
+        background-color: #e5e7eb;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .mobile-container {
+        width: 375px;
+        height: 812px;
+        background-color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.3);
+        border-radius: 40px;
+        border: 8px solid #1f2937;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        background-color: white;
+        padding-bottom: 85px;
+      }
+
+      /* [2. 프리뷰 영역 - 크기 증가] */
+      .preview-area {
+        height: 550px; /* 프리뷰 영역 크기 증가 */
+        width: 100%;
+        padding: 15px;
+        background: #f8fafc;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      #preview-target {
+        width: 100%;
+        height: 100%;
+        border-radius: 24px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        background: white;
+      }
+
+      /* [3. 스타일별 뷰 디자인] */
+
+      /* (A) Poster Log - [디자인 원복] */
+      .font-serif {
+        font-family: "Playfair Display", serif;
+      }
+      #view-poster {
+        background-color: black;
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+      #poster-bg {
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+      }
+      /* 그라데이션 복구 */
+      .poster-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.1),
+          rgba(0, 0, 0, 0.5)
+        );
+      }
+
+      /* (B) Map Log */
+      .story-bg {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        background: url("https://www.pngkey.com/png/detail/44-440169_south-korean-south-korea-map-png.png")
+          center/contain no-repeat;
+        background-color: #fafafa;
+        background-blend-mode: lighten;
+      }
+      .map-polaroid {
+        background: white;
+        padding: 6px 6px 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        position: absolute;
+        z-index: 2;
+        width: 95px;
+      }
+      .map-polaroid img {
+        width: 100%;
+        height: 75px;
+        object-fit: cover;
+        border-radius: 4px;
+        background: #eee;
+      }
+      .map-polaroid p {
+        font-size: 10px;
+        font-weight: 700;
+        text-align: center;
+        margin-top: 4px;
+        color: #333;
+      }
+      .pin {
+        position: absolute;
+        left: -6px;
+        top: -6px;
+        width: 18px;
+        height: 18px;
+        background: #6366f1;
+        color: white;
+        border-radius: 50%;
+        font-size: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        z-index: 3;
+      }
+      .curve-line {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+      }
+      .curve-line path {
+        fill: none;
+        stroke: #9ca3af;
+        stroke-width: 2;
+        stroke-dasharray: 6;
+      }
+
+      /* (C) K-Pattern Log */
+      .kpattern-container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        background-size: cover;
+        background-position: center;
+      }
+      .bg-selector {
+        position: absolute;
+        top: 12px;
+        left: 0;
+        right: 0;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        z-index: 50;
+      }
+      .bg-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        border: 2px solid white;
+        cursor: pointer;
+        background-size: cover;
+        background-position: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+      .bg-btn.selected {
+        border-color: #ff7f50;
+        transform: scale(1.1);
+      }
+      .interactive-pola {
+        position: absolute;
+        width: 110px;
+        height: 140px;
+        background: white;
+        padding: 8px 8px 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        border-radius: 6px;
+        cursor: grab;
+        touch-action: none;
+      }
+      .interactive-pola img {
+        width: 100%;
+        height: calc(100% - 20px);
+        object-fit: cover;
+        pointer-events: none;
+        border-radius: 2px;
+      }
+      .kp-caption {
+        width: 100%;
+        text-align: center;
+        font-size: 11px;
+        font-weight: 800;
+        color: #333;
+        margin-top: 6px;
+        outline: none;
+        background: transparent;
+      }
+      .resize-handle {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 50% 0 6px 0;
+        cursor: se-resize;
+        z-index: 20;
+      }
+
+      /* (D) Route Log */
+      #view-route {
+        width: 100%;
+        height: 100%;
+        background: #f0f0fa;
+        display: flex;
+        flex-direction: column;
+        font-family: "Inter", sans-serif;
+        position: relative;
+      }
+      .route-header {
+        padding: 15px 0;
+        text-align: center;
+        font-weight: 700;
+        font-size: 13px;
+        color: #444;
+        background: white;
+        border-bottom: 1px solid #eee;
+      }
+      .route-img-area {
+        width: 100%;
+        flex: 1;
+        background: #dee2e6;
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #adb5bd;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .route-content {
+        background: white;
+        margin-top: auto;
+        border-radius: 0 0 25px 25px;
+        padding: 15px;
+        box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
+        z-index: 10;
+        margin-bottom: 0;
+      }
+      .route-title-text {
+        font-size: 14px;
+        font-weight: 800;
+        color: #1a1a1a;
+        margin-bottom: 3px;
+      }
+      .grade-label {
+        font-size: 8px;
+        color: #999;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 1px;
+      }
+      .stars {
+        color: #ffd700;
+        font-size: 11px;
+        margin-bottom: 8px;
+      }
+      .route-list-title {
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: #333;
+      }
+      .route-item {
+        display: flex;
+        align-items: center;
+        font-size: 10px;
+        color: #555;
+        margin-bottom: 4px;
+      }
+      .icon-pin {
+        color: #5d3fd3;
+        margin-right: 6px;
+      }
+      .stats-box {
+        background-color: #f5f3ff;
+        border-radius: 12px;
+        padding: 8px 12px;
+        margin-top: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+      .stats-text {
+        font-size: 8px;
+        color: #888;
+        display: block;
+        margin-bottom: 1px;
+      }
+      .stats-number {
+        font-size: 13px;
+        font-weight: 700;
+        color: #222;
+      }
+      .bar-chart {
+        display: flex;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .bar {
+        width: 4px;
+        background: #e0e0e0;
+        border-radius: 2px;
+      }
+      .bar.active {
+        background: #5d3fd3;
+      }
+
+      /* [4. 에디터 영역 - 크기 축소] */
+      .editor-container {
+        flex: 1;
+        background: white;
+        padding: 12px 20px;
+        overflow-y: auto;
+      }
+      .section-title {
+        font-size: 13px;
+        font-weight: 800;
+        color: #1f2937;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .style-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 5px;
+        margin-bottom: 12px;
+      }
+      .select-card {
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 8px 2px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+        background: white;
+      }
+      .select-card p:first-child {
+        font-size: 10px;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 1px;
+      }
+      .select-card p:last-child {
+        font-size: 8px;
+        color: #9ca3af;
+        font-weight: 500;
+      }
+      .select-card.active {
+        border-color: var(--accent);
+        background: #eef2ff;
+      }
+      .select-card.active p:first-child {
+        color: var(--accent);
+      }
+
+      .input-box {
+        width: 100%;
+        padding: 10px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 12px;
+        outline: none;
+        transition: 0.2s;
+      }
+
+      /* [5. 하단 네비게이션] */
+      .bottom-nav {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 85px;
+        background: white;
+        border-top: 1px solid #f3f4f6;
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        padding-top: 15px;
+        z-index: 100;
+        border-bottom-left-radius: 32px;
+        border-bottom-right-radius: 32px;
+      }
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: #9ca3af;
+        text-decoration: none;
+        width: 60px;
+      }
+      .nav-item i {
+        font-size: 22px;
+      }
+      .nav-item span {
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .nav-item.active-tab {
+        color: var(--accent);
+      }
+
+      .d-none {
+        display: none !important;
+      }
+      .hidden {
+        display: none;
+      }
+      .modal-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+      }
+      .modal-overlay.active {
+        display: flex;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-container">
+      <section class="screen">
+        <div class="preview-area">
+          <div id="preview-target">
+            <div id="view-poster" class="w-full h-full relative">
+              <div
+                id="poster-bg"
+                class="absolute inset-0 bg-cover bg-center"
+                style="
+                  background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1000');
+                "
+              ></div>
+              <div class="poster-overlay"></div>
+              <div class="absolute top-[8%] w-full text-center px-4">
+                <h1
+                  id="p-title"
+                  class="text-3xl font-serif font-black text-[#E6C15A] drop-shadow-lg leading-tight"
+                >
+                  Gokseong-gun
+                </h1>
+              </div>
+              <div
+                class="absolute bottom-[10%] left-6 text-[#E6C15A] max-w-[70%]"
+              >
+                <h2
+                  id="p-subtitle"
+                  class="text-xl font-serif font-bold mb-1 drop-shadow-md"
+                >
+                  Jeollanam-do
+                </h2>
+                <p
+                  id="p-desc"
+                  class="text-[9px] font-bold uppercase tracking-widest leading-relaxed opacity-90"
+                >
+                  Seomjingang Train Village.
+                </p>
+              </div>
+              <div class="absolute bottom-[8%] right-6">
+                <span
+                  id="p-year"
+                  class="text-5xl font-serif font-black text-[#E6C15A] opacity-80 drop-shadow-lg"
+                  >2025</span
+                >
+              </div>
+            </div>
+
+            <div id="view-map" class="d-none w-full h-full story-bg">
+              <header
+                class="text-center pt-8 mb-2 cursor-pointer"
+                onclick="openModal()"
+              >
+                <p
+                  class="text-[9px] font-bold tracking-widest uppercase text-gray-400"
+                >
+                  Map Log
+                </p>
+                <h2 id="map-title" class="text-xl font-black text-slate-900">
+                  Today's K-Route
+                </h2>
+                <p class="text-[9px] text-indigo-500 font-bold">Edit Title ✎</p>
+              </header>
+              
+              <!-- SVG 연결선 -->
+              <svg class="curve-line" viewBox="0 0 345 520" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 70 130 Q 150 145 250 185" stroke="#9ca3af" stroke-width="2.5" stroke-dasharray="5,5" fill="none"/>
+                <path d="M 250 205 Q 180 225 100 270" stroke="#9ca3af" stroke-width="2.5" stroke-dasharray="5,5" fill="none"/>
+                <path d="M 100 290 Q 180 305 260 340" stroke="#9ca3af" stroke-width="2.5" stroke-dasharray="5,5" fill="none"/>
+                <path d="M 260 360 Q 200 375 150 410" stroke="#9ca3af" stroke-width="2.5" stroke-dasharray="5,5" fill="none"/>
+              </svg>
+              
+              <div
+                class="map-polaroid"
+                style="top: 100px; left: 30px; transform: rotate(-3deg)"
+                onclick="triggerUpload(this)"
+              >
+                <div class="pin">1</div>
+                <img src="" class="spot-img" />
+                <p>Chickpeace</p>
+                <input
+                  type="file"
+                  class="hidden file-input"
+                  onchange="previewImage(this)"
+                />
+              </div>
+              <div
+                class="map-polaroid"
+                style="top: 160px; left: 200px; transform: rotate(4deg)"
+                onclick="triggerUpload(this)"
+              >
+                <div class="pin">2</div>
+                <img src="" class="spot-img" />
+                <p>Bias Spot</p>
+                <input
+                  type="file"
+                  class="hidden file-input"
+                  onchange="previewImage(this)"
+                />
+              </div>
+              <div
+                class="map-polaroid"
+                style="top: 250px; left: 50px; transform: rotate(-2deg)"
+                onclick="triggerUpload(this)"
+              >
+                <div class="pin">3</div>
+                <img src="" class="spot-img" />
+                <p>Café Time</p>
+                <input
+                  type="file"
+                  class="hidden file-input"
+                  onchange="previewImage(this)"
+                />
+              </div>
+              <div
+                class="map-polaroid"
+                style="top: 320px; left: 210px; transform: rotate(3deg)"
+                onclick="triggerUpload(this)"
+              >
+                <div class="pin">4</div>
+                <img src="" class="spot-img" />
+                <p>Namsan</p>
+                <input
+                  type="file"
+                  class="hidden file-input"
+                  onchange="previewImage(this)"
+                />
+              </div>
+              <div
+                class="map-polaroid"
+                style="top: 390px; left: 100px; transform: rotate(-4deg)"
+                onclick="triggerUpload(this)"
+              >
+                <div class="pin">5</div>
+                <img src="" class="spot-img" />
+                <p>Sunset Spot</p>
+                <input
+                  type="file"
+                  class="hidden file-input"
+                  onchange="previewImage(this)"
+                />
+              </div>
+            </div>
+
+            <div
+              id="view-kpattern"
+              class="d-none w-full h-full kpattern-container"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1706799687464-0fc4d6050234');
+              "
+            >
+              <div class="bg-selector">
+                <button
+                  class="bg-btn selected"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1706799687464-0fc4d6050234');
+                  "
+                  data-bg="https://images.unsplash.com/photo-1706799687464-0fc4d6050234"
+                ></button>
+                <button
+                  class="bg-btn"
+                  style="
+                    background-image: url('https://cdn.pixabay.com/photo/2024/06/28/08/23/ajrak-8858928_1280.png');
+                  "
+                  data-bg="https://cdn.pixabay.com/photo/2024/06/28/08/23/ajrak-8858928_1280.png"
+                ></button>
+                <button
+                  class="bg-btn"
+                  style="
+                    background-image: url('https://cdn.pixabay.com/photo/2021/11/13/21/12/art-6792397_1280.png');
+                  "
+                  data-bg="https://cdn.pixabay.com/photo/2021/11/13/21/12/art-6792397_1280.png"
+                ></button>
+              </div>
+              <div
+                class="interactive-pola"
+                style="top: 110px; left: 35px; transform: rotate(-2deg)"
+              >
+                <img src="" />
+                <div class="kp-caption" contenteditable="true">Spot 1</div>
+                <input type="file" class="hidden kp-upload" accept="image/*" />
+                <div class="resize-handle"></div>
+              </div>
+              <div
+                class="interactive-pola"
+                style="top: 110px; left: 185px; transform: rotate(3deg)"
+              >
+                <img src="" />
+                <div class="kp-caption" contenteditable="true">Spot 2</div>
+                <input type="file" class="hidden kp-upload" accept="image/*" />
+                <div class="resize-handle"></div>
+              </div>
+              <div
+                class="interactive-pola"
+                style="top: 290px; left: 35px; transform: rotate(2deg)"
+              >
+                <img src="" />
+                <div class="kp-caption" contenteditable="true">Spot 3</div>
+                <input type="file" class="hidden kp-upload" accept="image/*" />
+                <div class="resize-handle"></div>
+              </div>
+              <div
+                class="interactive-pola"
+                style="top: 290px; left: 185px; transform: rotate(-4deg)"
+              >
+                <img src="" />
+                <div class="kp-caption" contenteditable="true">Spot 4</div>
+                <input type="file" class="hidden kp-upload" accept="image/*" />
+                <div class="resize-handle"></div>
+              </div>
+            </div>
+
+            <div id="view-route" class="d-none">
+              <div class="route-header">The route I traveled today</div>
+              <div
+                class="route-img-area"
+                id="route-photo"
+                onclick="document.getElementById('route-upload').click()"
+              >
+                Your Photo Here
+              </div>
+              <input
+                type="file"
+                id="route-upload"
+                class="hidden"
+                accept="image/*"
+                onchange="updateRoutePhoto(this)"
+              />
+              <div class="route-content">
+                <div class="title route-title-text" id="r-card-title">
+                  My Seoul Trip
+                </div>
+                <div class="grade-section">
+                  <div class="grade-label">Grade</div>
+                  <div class="stars" id="r-card-stars">★★★★★</div>
+                </div>
+                <div class="route-list-title">My K-Drama Route</div>
+                <div id="r-route-list">
+                  <div class="route-item">
+                    <span class="icon-pin">📍</span> Gyeongbokgung
+                  </div>
+                  <div class="route-item">
+                    <span class="icon-pin">📍</span> Myeongdong
+                  </div>
+                  <div class="route-item">
+                    <span class="icon-pin">📍</span> Namsan Tower
+                  </div>
+                </div>
+                <div class="stats-box">
+                  <div class="stats-info">
+                    <span class="stats-text">Visited Fans</span
+                    ><span class="stats-number">12,345</span>
+                  </div>
+                  <div class="bar-chart">
+                    <div class="bar" style="height: 10px"></div>
+                    <div class="bar" style="height: 16px"></div>
+                    <div class="bar active" style="height: 25px"></div>
+                    <div class="bar" style="height: 12px"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="editor-container">
+          <div class="section-title">Choose Story Style</div>
+          <div class="style-grid">
+            <div
+              class="select-card active"
+              onclick="switchStyle('poster', this)"
+            >
+              <p>Poster</p>
+              <p>Modern</p>
+            </div>
+            <div class="select-card" onclick="switchStyle('map', this)">
+              <p>Map</p>
+              <p>Route</p>
+            </div>
+            <div class="select-card" onclick="switchStyle('kpattern', this)">
+              <p>K-Log</p>
+              <p>Custom</p>
+            </div>
+            <div class="select-card" onclick="switchStyle('route', this)">
+              <p>Route</p>
+              <p>Detail</p>
+            </div>
+          </div>
+
+          <button
+            onclick="location.href='photo-2.html'"
+            class="w-full bg-indigo-600 text-white py-2.5 rounded-2xl font-black shadow-lg active:scale-95 transition-transform text-xs"
+          >
+            Go to Image Generator <i class="fa-solid fa-arrow-right ml-1"></i>
+          </button>
+        </div>
+      </section>
+
+      <nav class="bottom-nav">
+        <a href="/" class="nav-item"
+          ><i class="fa-solid fa-house"></i><span>Home</span></a
+        >
+        <a href="/chat.html" class="nav-item"
+          ><i class="fa-solid fa-comment-dots"></i><span>Chat</span></a
+        >
+        <a href="/saved.html" class="nav-item"
+          ><i class="fa-solid fa-heart"></i><span>Saved</span></a
+        >
+        <a href="/photo.html" class="nav-item active-tab">
+    <i class="fa-solid fa-book-open"></i>
+    <span>Log</span>
+</a>
+      </nav>
+    </div>
+
+    <div id="modal" class="modal-overlay">
+      <div class="bg-white w-[85%] rounded-3xl p-6 shadow-2xl">
+        <h3 class="text-sm font-black text-indigo-600 mb-4 uppercase">
+          Edit Trip Title
+        </h3>
+        <input
+          id="title-input"
+          type="text"
+          class="input-box py-3 mb-4 font-bold text-lg text-center text-indigo-900 bg-indigo-50 border-indigo-100"
+        />
+        <div class="flex gap-3">
+          <button
+            onclick="closeModal()"
+            class="flex-1 bg-gray-100 text-gray-500 py-3 rounded-xl font-bold text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            onclick="saveTitle()"
+            class="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 1. 스타일 전환
+      function switchStyle(style, el) {
+        document
+          .querySelectorAll(".select-card")
+          .forEach((c) => c.classList.remove("active"));
+        el.classList.add("active");
+        ["poster", "map", "kpattern", "route"].forEach((s) => {
+          document
+            .getElementById(`view-${s}`)
+            .classList.toggle("d-none", style !== s);
+        });
+        // 선택한 스타일 저장
+        localStorage.setItem('selectedStyle', style);
+      }
+
+      // 2. K-Pattern
+      document.querySelectorAll(".bg-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById(
+            "view-kpattern"
+          ).style.backgroundImage = `url('${btn.dataset.bg}')`;
+          document
+            .querySelectorAll(".bg-btn")
+            .forEach((b) => b.classList.remove("selected"));
+          btn.classList.add("selected");
+        });
+      });
+
+      function initInteract(el) {
+        const handle = el.querySelector(".resize-handle"),
+          caption = el.querySelector(".kp-caption"),
+          input = el.querySelector(".kp-upload"),
+          img = el.querySelector("img");
+        el.addEventListener("click", (e) => {
+          if (e.target !== caption && e.target !== handle) input.click();
+        });
+        input.addEventListener("change", (e) => {
+          const r = new FileReader();
+          r.onload = (ev) => (img.src = ev.target.result);
+          r.readAsDataURL(e.target.files[0]);
+        });
+
+        let startX, startY, startL, startT;
+        const startDrag = (e) => {
+          if (e.target === handle || e.target === caption) return;
+          const t = e.touches ? e.touches[0] : e;
+          startX = t.clientX;
+          startY = t.clientY;
+          startL = el.offsetLeft;
+          startT = el.offsetTop;
+          const move = (ev) => {
+            const mt = ev.touches ? ev.touches[0] : ev;
+            el.style.left = startL + mt.clientX - startX + "px";
+            el.style.top = startT + mt.clientY - startY + "px";
+          };
+          const stop = () => {
+            window.removeEventListener("mousemove", move);
+            window.removeEventListener("touchmove", move);
+          };
+          window.addEventListener("mousemove", move);
+          window.addEventListener("touchmove", move);
+          window.addEventListener("mouseup", stop, { once: true });
+          window.addEventListener("touchend", stop, { once: true });
+        };
+        el.addEventListener("mousedown", startDrag);
+        el.addEventListener("touchstart", startDrag);
+
+        handle.addEventListener("mousedown", (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          const t = e.touches ? e.touches[0] : e;
+          const sW = el.offsetWidth,
+            sH = el.offsetHeight,
+            sX = t.clientX,
+            sY = t.clientY;
+          const resize = (ev) => {
+            const rt = ev.touches ? ev.touches[0] : ev;
+            el.style.width = Math.max(80, sW + rt.clientX - sX) + "px";
+            el.style.height = Math.max(100, sH + rt.clientY - sY) + "px";
+          };
+          window.addEventListener("mousemove", resize);
+          window.addEventListener("touchmove", resize);
+          window.addEventListener(
+            "mouseup",
+            () => window.removeEventListener("mousemove", resize),
+            { once: true }
+          );
+          window.addEventListener(
+            "touchend",
+            () => window.removeEventListener("touchmove", resize),
+            { once: true }
+          );
+        });
+      }
+      document.querySelectorAll(".interactive-pola").forEach(initInteract);
+
+      // 3. Route Log
+      function updateRoutePhoto(input) {
+        if (input.files[0]) {
+          const r = new FileReader();
+          r.onload = (e) => {
+            const d = document.getElementById("route-photo");
+            d.style.backgroundImage = `url(${e.target.result})`;
+            d.innerText = "";
+          };
+          r.readAsDataURL(input.files[0]);
+        }
+      }
+
+      // 4. 공통 유틸
+      function triggerUpload(el) {
+        el.querySelector(".file-input").click();
+      }
+      function previewImage(input) {
+        if (input.files[0]) {
+          const r = new FileReader();
+          r.onload = (e) =>
+            (input.parentElement.querySelector(".spot-img").src =
+              e.target.result);
+          r.readAsDataURL(input.files[0]);
+        }
+      }
+      function openModal() {
+        document.getElementById("title-input").value =
+          document.getElementById("map-title").innerText;
+        document.getElementById("modal").classList.add("active");
+      }
+      function closeModal() {
+        document.getElementById("modal").classList.remove("active");
+      }
+      function saveTitle() {
+        document.getElementById("map-title").innerText =
+          document.getElementById("title-input").value;
+        closeModal();
+      }
+      async function downloadResult() {
+        const el = document.getElementById("preview-target");
+        const c = await html2canvas(el, { scale: 2, useCORS: true });
+        const l = document.createElement("a");
+        l.download = `ktrip-${Date.now()}.png`;
+        l.href = c.toDataURL();
+        l.click();
+      }
+
+      // 페이지 로드 시 기본 스타일 설정
+      window.addEventListener('DOMContentLoaded', () => {
+        // localStorage에 선택된 스타일이 없으면 poster를 기본값으로 설정
+        const currentStyle = localStorage.getItem('selectedStyle');
+        if (!currentStyle) {
+          localStorage.setItem('selectedStyle', 'poster');
+          console.log('기본 스타일 poster로 설정됨');
+        }
+      });
+    </script>
+  </body>
+</html>

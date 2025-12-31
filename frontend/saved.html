@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>K-Trip</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap" rel="stylesheet" />
+    <style>
+    /* [추가] 모든 요소의 크기 계산 기준을 테두리 포함으로 고정하여 크기 왜곡 방지 */
+    * { box-sizing: border-box; }
+
+    /* [보존] 원본 스타일 시트 */
+    :root { --accent: #6366f1; --bg: #F3F4F6; }
+    body { 
+        font-family: 'Pretendard', sans-serif; 
+        background-color: #e5e7eb; 
+        margin: 0; 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        min-height: 100vh; 
+    }
+
+    /* [보존] 8px 테두리가 포함된 컨테이너 디자인 */
+    .mobile-container { 
+        width: 375px; 
+        height: 812px; 
+        background-color: var(--bg); 
+        position: relative; 
+        overflow: hidden; 
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+        border-radius: 40px; 
+        border: 8px solid #1f2937; 
+    }
+
+    .screen { 
+        position: absolute; 
+        inset: 0; 
+        overflow-y: auto; 
+        background-color: white; 
+        padding-bottom: 90px; 
+    }
+
+    /* [수정] 네비게이션 바 디자인 완벽 일치 */
+    .bottom-nav { 
+        position: absolute; bottom: 0; left: 0; right: 0; 
+        height: 85px; background: white; 
+        border-top: 1px solid #f3f4f6; 
+        display: flex; justify-content: space-around; align-items: flex-start; 
+        padding-top: 15px; z-index: 80;
+        border-bottom-left-radius: 32px; border-bottom-right-radius: 32px; 
+    }
+
+    .nav-item { 
+        display: flex; flex-direction: column; align-items: center; gap: 4px; 
+        color: #9ca3af; text-decoration: none; 
+        width: 60px; /* 홈 화면과 동일한 고정 너비 */
+        transition: color 0.2s;
+    }
+
+    .nav-item i { font-size: 20px; } /* 아이콘 크기 고정 */
+    .nav-item span { font-size: 10px; font-weight: 500; } /* 폰트 굵기 보정 */
+    .nav-item.active-tab { color: var(--accent); }
+</style>
+</head>
+<body>
+    <div class="mobile-container">
+        <section id="scr-saved" class="screen pt-10 px-6">
+            <h2 class="text-2xl faont-black text-gray-900 mb-1">Saved Routes</h2>
+            <p class="text-gray-400 text-xs mb-6">Your favorite memories are kept here.</p>
+            <div id="saved-list" class="space-y-4">
+                </div>
+        </section>
+
+        <nav class="bottom-nav">
+    <a href="/" class="nav-item">
+        <i class="fa-solid fa-house"></i><span>Home</span>
+    </a>
+    <a href="/chat.html" class="nav-item">
+        <i class="fa-solid fa-comment-dots"></i><span>Chat</span>
+    </a>
+    <a href="/saved.html" class="nav-item active-tab">
+        <i class="fa-solid fa-heart"></i><span>Saved</span>
+    </a>
+    <a href="/photo.html" class="nav-item">
+    <i class="fa-solid fa-book-open"></i>
+    <span>Log</span>
+</a>
+</nav>
+    </div>
+
+    <script>
+        // [보존] 저장된 경로 로직
+        const STORAGE_KEY = 'ktrip_saved_routes';
+        
+        function renderSavedRoutes() {
+            const container = document.getElementById('saved-list');
+            const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            if (savedData.length === 0) {
+                container.innerHTML = `<div class="flex flex-col items-center justify-center py-20 opacity-50"><i class="fa-regular fa-folder-open text-4xl mb-2"></i><p class="text-sm">No saved trips yet.</p></div>`;
+                return;
+            }
+            container.innerHTML = "";
+            savedData.forEach(trip => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer hover:border-indigo-200 transition";
+                card.onclick = () => {
+                    localStorage.setItem('currentSpots', JSON.stringify(trip.spots));
+                    location.href = 'result.html'; // 결과 페이지로 이동하여 로드
+                };
+                card.innerHTML = `<div class="flex items-center gap-4"><div class="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center text-rose-500 font-bold"><i class="fa-solid fa-plane"></i></div><div><h4 class="font-bold text-gray-800 text-sm">${trip.date} Trip</h4><p class="text-xs text-gray-400">${trip.spots[0].name} + ${trip.spots.length-1} more</p></div></div><button onclick="deleteRoute(event, ${trip.id})" class="text-gray-300 hover:text-red-500 p-2 transition"><i class="fa-solid fa-trash"></i></button>`;
+                container.appendChild(card);
+            });
+        }
+
+        function deleteRoute(event, id) {
+            event.stopPropagation();
+            if (!confirm("Delete this trip?")) return;
+            let savedData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            savedData = savedData.filter(t => t.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+            renderSavedRoutes();
+        }
+
+        window.onload = renderSavedRoutes;
+    </script>
+</body>
+</html>
