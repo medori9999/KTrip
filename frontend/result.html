@@ -39,68 +39,57 @@
             <div id="map-container" class="mt-6 w-full h-64 bg-gray-100 rounded-2xl overflow-hidden relative border border-gray-200 shadow-sm"></div>
             
             <div class="mt-6 flex gap-3">
-    <button onclick="saveRoute()" class="flex-1 bg-white text-rose-500 border border-rose-100 py-3 rounded-xl font-bold shadow-sm active:scale-95 transition-transform text-sm flex items-center justify-center gap-1">
-        <i class="fa-solid fa-heart"></i> Save
-    </button>
+                <button onclick="saveRoute()" class="flex-1 bg-white text-rose-500 border border-rose-100 py-3 rounded-xl font-bold shadow-sm active:scale-95 transition-transform text-sm flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-heart"></i> Save
+                </button>
 
-    <button onclick="startNewTrip()" class="flex-1 bg-slate-900 text-white py-3 rounded-xl font-bold shadow-lg active:scale-95 transition-transform text-sm">
-        New Trip
-    </button>
-</div>
+                <button onclick="startNewTrip()" class="flex-1 bg-slate-900 text-white py-3 rounded-xl font-bold shadow-lg active:scale-95 transition-transform text-sm">
+                    <i class="fa-solid fa-paper-plane"></i> New Trip
+                </button>
+            </div>
         </section>
 
         <nav class="bottom-nav">
             <a href="/" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
             <a href="/chat.html" class="nav-item active-tab"><i class="fa-solid fa-comment-dots"></i><span>Chat</span></a>
             <a href="/saved.html" class="nav-item"><i class="fa-solid fa-heart"></i><span>Saved</span></a>
-            <a href="/photo.html" class="nav-item"><i class="fa-solid fa-book-open"></i>
-    <span>Log</span>
-</a>
+            <a href="/photo.html" class="nav-item"><i class="fa-solid fa-book-open"></i><span>Log</span></a>
         </nav>
     </div>
-
-    <script>
-        ((g)=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await(a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):(d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n)))})({ key: "AIzaSyCupkJq4a5oOMYWbPE630TcPuQq9dex4vw", v: "weekly", language: "en" });
-    </script>
-    <script src="script.js"></script>
-    
-    <script>
-        // 1. 서버에서 API 키를 먼저 가져옵니다.
-        async function startWithConfig() {
-            try {
-                const response = await fetch('/api/config');
-                const config = await response.json();
-                const GOOGLE_MAPS_KEY = config.googleMapsKey;
-
-                // 2. 받아온 키를 사용하여 구글 맵 로더 실행
-                ((g)=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await(a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):(d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n)))})({ 
-                    key: GOOGLE_MAPS_KEY, 
-                    v: "weekly", 
-                    language: "en" 
-                });
-
-                // 3. 키 로딩이 완료된 후, 기존의 메인 로직 실행
-                initializeApp();
-
-            } catch (error) {
-                console.error("API 키를 불러오는 중 오류 발생:", error);
-            }
-        }
-
-        // 실행
-        startWithConfig();
-    </script>
 
     <script src="script.js"></script>
     
     <script>
         let allSpotsData = []; 
 
-        // 기존 window 'load' 이벤트를 함수로 분리하여 키 로드 후에 실행되도록 함
-        async function initializeApp() {
-            await initMap();
+        // [변경됨] 1. 서버에서 키를 받아와서 지도를 로드하는 함수
+        async function loadMapsAndStart() {
+            try {
+                // (1) 서버에서 API 키 가져오기
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                const GOOGLE_MAPS_KEY = config.googleMapsKey;
 
-            // 1. 저장된 데이터 확인
+                // (2) 구글 맵 로더 실행 (받아온 키 사용)
+                ((g)=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await(a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):(d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n)))})({ 
+                    key: GOOGLE_MAPS_KEY, 
+                    v: "weekly", 
+                    language: "en" 
+                });
+
+                // (3) 키 로딩 후 앱 로직 실행
+                await initializeAppLogic();
+
+            } catch (e) {
+                console.error("Critical Error: Failed to load Maps API key.", e);
+            }
+        }
+
+        // [변경됨] 2. 기존 window.load 내부 로직을 함수로 분리
+        async function initializeAppLogic() {
+            await initMap(); // script.js에 있는 함수 실행
+
+            // 기존 로직: 저장된 데이터 확인 및 렌더링
             const existingPlan = localStorage.getItem('currentSpots');
             const surveyData = JSON.parse(localStorage.getItem('surveyData'));
 
@@ -126,29 +115,45 @@
                     document.getElementById('result-container').innerHTML = "<p class='text-center text-red-500'>Error.</p>";
                 }
             } else {
+                // 데이터가 없으면 설문조사 페이지로 리다이렉트
                 location.href = 'survey.html';
             }
         }
 
-        // --- 아래 processAndRender 등 기존 함수들은 동일하므로 생략 (그대로 두시면 됩니다) ---
+        // [핵심] 페이지가 로드되면 위 함수 실행
+        window.addEventListener('load', loadMapsAndStart);
+
+
+        // --- 아래부터는 기존 함수들 (건드리지 않음) ---
+
+        // 데이터를 받아서 Day를 계산하고 화면에 뿌리기
         function processAndRender(spots) {
             const spotsPerDay = 5; 
+            
+            // 데이터에 'day' 속성이 없으면 우리가 주입!
             allSpotsData = spots.map((spot, index) => {
                 if (!spot.day) {
                     spot.day = Math.floor(index / spotsPerDay) + 1;
                 }
                 return spot;
             });
+
+            // 로딩 끄기
             document.getElementById('loading-spinner').style.display = 'none';
             document.getElementById('loading-text').style.display = 'none';
+            
+            // 탭 만들고 첫 번째 날 보여주기
             createDayTabs();
             renderDay(1);
         }
 
+        // 탭 생성 함수
         function createDayTabs() {
             const container = document.getElementById('day-tabs-container');
             container.innerHTML = ''; 
+            
             const maxDay = Math.max(...allSpotsData.map(s => s.day));
+
             for (let i = 1; i <= maxDay; i++) {
                 const btn = document.createElement('button');
                 btn.className = `day-tab ${i === 1 ? 'active' : ''}`;
@@ -158,21 +163,27 @@
             }
         }
 
+        // 특정 날짜만 보여주기
         function renderDay(day) {
             document.querySelectorAll('.day-tab').forEach(btn => {
                 btn.classList.toggle('active', btn.innerText === `Day ${day}`);
             });
+
             const dailySpots = allSpotsData.filter(s => s.day === day);
-            renderResult(dailySpots); 
-            drawRouteOnMap(dailySpots);
+            
+            // script.js에 있는 함수들 호출
+            if (typeof renderResult === 'function') renderResult(dailySpots); 
+            if (typeof drawRouteOnMap === 'function') drawRouteOnMap(dailySpots);
         }
 
         function startNewTrip() {
+            // 1. 과거의 모든 기억 삭제
             localStorage.removeItem('currentSpots');
             localStorage.removeItem('surveyData');
-            location.href = '/survey'; 
+            
+            // 2. 설문조사 페이지로 이동
+            location.href = '/survey.html'; // 경로 수정 (서버 설정에 따라 /survey 또는 survey.html)
         }
-    </script> 
-}
     </script>
 </body>
+</html>
