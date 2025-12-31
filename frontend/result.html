@@ -21,6 +21,86 @@
         /* 스크롤바 숨기기 */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Toast 알림 스타일 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: white;
+            padding: 32px 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .toast-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .toast-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .toast-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            animation: bounce 0.6s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .toast-message {
+            font-size: 18px;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .toast-submessage {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .toast-button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toast-button:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
@@ -230,6 +310,86 @@
 
             
         }
+        // Toast 알림 표시 함수
+        function showToast(message, submessage = '', icon = '💚', showButton = false, buttonText = '확인', buttonCallback = null) {
+            // 오버레이 생성
+            const overlay = document.createElement('div');
+            overlay.className = 'toast-overlay';
+            
+            // Toast 생성
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-message">${message}</div>
+                ${submessage ? `<div class="toast-submessage">${submessage}</div>` : ''}
+                ${showButton ? `<button class="toast-button" id="toast-btn">${buttonText}</button>` : ''}
+            `;
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(toast);
+            
+            // 애니메이션 적용
+            setTimeout(() => {
+                overlay.classList.add('show');
+                toast.classList.add('show');
+            }, 10);
+            
+            // 닫기 함수
+            const closeToast = () => {
+                overlay.classList.remove('show');
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    overlay.remove();
+                    toast.remove();
+                }, 300);
+            };
+            
+            // 버튼이 있으면 버튼 클릭 시 닫기
+            if (showButton) {
+                document.getElementById('toast-btn').onclick = () => {
+                    closeToast();
+                    if (buttonCallback) buttonCallback();
+                };
+            } else {
+                // 버튼이 없으면 2초 후 자동으로 닫기
+                setTimeout(closeToast, 2000);
+            }
+            
+            // 오버레이 클릭 시 닫기
+            overlay.onclick = closeToast;
+        }
+
+        // saveRoute 함수 수정 (기존 script.js의 함수를 오버라이드)
+        function saveRoute() {
+            const STORAGE_KEY = 'ktrip_saved_routes';
+            const currentSpots = JSON.parse(localStorage.getItem('currentSpots'));
+            
+            if (!currentSpots || currentSpots.length === 0) {
+                showToast('No Route to Save', 'Please generate a route first', '⚠️', true, '확인');
+                return;
+            }
+            
+            const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            const newTrip = {
+                id: Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                spots: currentSpots
+            };
+            
+            savedData.push(newTrip);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+            
+            // 예쁜 toast 팝업 표시
+            showToast(
+                'Trip Saved Successfully!', 
+                'Check your saved trips anytime', 
+                '💚',
+                true,
+                '확인'
+            );
+        }
+
         function startNewTrip() {
             // 1. 과거의 모든 기억 삭제
             localStorage.removeItem('currentSpots');
