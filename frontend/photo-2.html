@@ -513,15 +513,43 @@
                 </h2>
                 <p class="text-[9px] text-indigo-500 font-bold">Edit Title ✎</p>
               </header>
-              
+
               <!-- SVG 연결선 -->
-              <svg class="curve-line" viewBox="0 0 345 520" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 70 130 Q 150 145 250 185" stroke="#9ca3af" stroke-width="2.5" stroke-dasharray="5,5" fill="none"/>
-                <path d="M 250 205 Q 180 225 100 270" stroke="#9ca3af" stroke-width="2.5" stroke-dasharray="5,5" fill="none"/>
-                <path d="M 100 290 Q 180 305 260 340" stroke="#9ca3af" stroke-width="2.5" stroke-dasharray="5,5" fill="none"/>
-                <path d="M 260 360 Q 200 375 150 410" stroke="#9ca3af" stroke-width="2.5" stroke-dasharray="5,5" fill="none"/>
+              <svg
+                class="curve-line"
+                viewBox="0 0 345 520"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M 70 130 Q 150 145 250 185"
+                  stroke="#9ca3af"
+                  stroke-width="2.5"
+                  stroke-dasharray="5,5"
+                  fill="none"
+                />
+                <path
+                  d="M 250 205 Q 180 225 100 270"
+                  stroke="#9ca3af"
+                  stroke-width="2.5"
+                  stroke-dasharray="5,5"
+                  fill="none"
+                />
+                <path
+                  d="M 100 290 Q 180 305 260 340"
+                  stroke="#9ca3af"
+                  stroke-width="2.5"
+                  stroke-dasharray="5,5"
+                  fill="none"
+                />
+                <path
+                  d="M 260 360 Q 200 375 150 410"
+                  stroke="#9ca3af"
+                  stroke-width="2.5"
+                  stroke-dasharray="5,5"
+                  fill="none"
+                />
               </svg>
-              
+
               <div
                 class="map-polaroid"
                 style="top: 100px; left: 30px; transform: rotate(-3deg)"
@@ -701,7 +729,7 @@
                 <div class="stats-box">
                   <div class="stats-info">
                     <span class="stats-text">Visited Fans</span
-                    ><span class="stats-number">12,345</span>
+                    ><span id="fans-count-display" class="stats-number">0</span>
                   </div>
                   <div class="bar-chart">
                     <div class="bar" style="height: 10px"></div>
@@ -805,11 +833,20 @@
             />
           </div>
 
-          <div style="display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: auto; padding: 0;">
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              width: 100%;
+              margin-top: auto;
+              padding: 0;
+            "
+          >
             <button
               onclick="downloadResult()"
               class="bg-indigo-600 text-white py-2.5 rounded-2xl font-black shadow-lg active:scale-95 transition-transform text-xs"
-              style="width: calc(100% - 40px); max-width: 300px;"
+              style="width: calc(100% - 40px); max-width: 300px"
             >
               Save to Gallery <i class="fa-solid fa-download ml-1"></i>
             </button>
@@ -836,9 +873,9 @@
           ><i class="fa-solid fa-heart"></i><span>Saved</span></a
         >
         <a href="/photo.html" class="nav-item active-tab">
-    <i class="fa-solid fa-book-open"></i>
-    <span>Log</span>
-</a>
+          <i class="fa-solid fa-book-open"></i>
+          <span>Log</span>
+        </a>
       </nav>
     </div>
 
@@ -1056,10 +1093,10 @@
       });
 
       // 페이지 로드 시 선택된 스타일 적용
-      window.addEventListener('DOMContentLoaded', () => {
-        const selectedStyle = localStorage.getItem('selectedStyle') || 'poster';
-        console.log('photo-2.html 로드됨, 선택된 스타일:', selectedStyle);
-        
+      window.addEventListener("DOMContentLoaded", () => {
+        const selectedStyle = localStorage.getItem("selectedStyle") || "poster";
+        console.log("photo-2.html 로드됨, 선택된 스타일:", selectedStyle);
+
         // 해당 스타일만 표시
         ["poster", "map", "kpattern", "route"].forEach((s) => {
           const viewEl = document.getElementById(`view-${s}`);
@@ -1067,21 +1104,87 @@
             viewEl.classList.toggle("d-none", selectedStyle !== s);
           }
         });
-        
+
         // poster인 경우 poster-editor 표시, route인 경우 route-editor 표시
-        const posterEditor = document.getElementById('poster-editor');
-        const routeEditor = document.getElementById('route-editor');
-        
+        const posterEditor = document.getElementById("poster-editor");
+        const routeEditor = document.getElementById("route-editor");
+
         if (posterEditor && routeEditor) {
-          if (selectedStyle === 'poster') {
-            posterEditor.classList.remove('d-none');
-            routeEditor.classList.add('d-none');
-          } else if (selectedStyle === 'route') {
-            posterEditor.classList.add('d-none');
-            routeEditor.classList.remove('d-none');
+          if (selectedStyle === "poster") {
+            posterEditor.classList.remove("d-none");
+            routeEditor.classList.add("d-none");
+          } else if (selectedStyle === "route") {
+            posterEditor.classList.add("d-none");
+            routeEditor.classList.remove("d-none");
           } else {
-            posterEditor.classList.add('d-none');
-            routeEditor.classList.add('d-none');
+            posterEditor.classList.add("d-none");
+            routeEditor.classList.add("d-none");
+          }
+        }
+      });
+      // [새로 추가] 서버에서 방문자 수 가져오기 & 실시간 업데이트 로직
+      async function syncVisitCount(placeName) {
+        if (!placeName) return;
+        try {
+          // 백엔드 API 호출
+          const response = await fetch(`/api/get-visit-count/${placeName}`);
+          const result = await response.json();
+
+          if (result.success) {
+            const display = document.getElementById("fans-count-display");
+            if (display) {
+              // 숫자가 부드럽게 바뀌는 연출
+              display.style.opacity = 0;
+              setTimeout(() => {
+                display.innerText = result.count.toLocaleString();
+                display.style.opacity = 1;
+              }, 200);
+            }
+          }
+        } catch (error) {
+          console.error("카운트 불러오기 실패:", error);
+        }
+      }
+
+      // [이벤트 연결 1] Poster 스타일의 제목 입력창 (in-title)
+      const posterTitleInput = document.getElementById("in-title");
+      if (posterTitleInput) {
+        // 1. 입력하다가 커서를 떼면 갱신
+        posterTitleInput.addEventListener("blur", (e) =>
+          syncVisitCount(e.target.value)
+        );
+        // 2. 처음 페이지 로드될 때 현재 값으로 갱신
+        syncVisitCount(posterTitleInput.value);
+      }
+
+      // [이벤트 연결 2] Route 스타일의 제목 입력창 (rt-title)
+      const routeListInput = document.getElementById("rt-routes");
+      if (routeListInput) {
+        routeListInput.addEventListener("blur", (e) => {
+          // 콤마(,)로 여러 장소를 썼을 경우, 가장 첫 번째 장소의 카운트를 조회
+          const firstPlace = e.target.value.split(",")[0].trim();
+          if (firstPlace) {
+              syncVisitCount(firstPlace);
+          }
+        });
+      }
+
+      // 2. 페이지 로드 시 초기화 로직 수정
+      window.addEventListener("load", () => {
+        const style = localStorage.getItem("selectedStyle");
+        
+        if (style === "route") {
+          // [변경] 제목(rt-title) 대신 루트 입력창(rt-routes)의 값을 가져옴
+          const routeValue = document.getElementById("rt-routes").value;
+          if (routeValue) {
+              const firstPlace = routeValue.split(",")[0].trim();
+              syncVisitCount(firstPlace);
+          }
+        } else {
+          // Poster 스타일은 여전히 제목(in-title)이 곧 장소명이므로 유지
+          const posterTitle = document.getElementById("in-title").value;
+          if (posterTitle) {
+              syncVisitCount(posterTitle);
           }
         }
       });

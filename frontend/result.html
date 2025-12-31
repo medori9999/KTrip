@@ -176,6 +176,60 @@
             if (typeof drawRouteOnMap === 'function') drawRouteOnMap(dailySpots);
         }
 
+        async function saveRoute() {
+            if (!allSpotsData || allSpotsData.length === 0) {
+                alert("저장할 경로가 없습니다.");
+                return;
+            }
+
+            // ---------------------------------------------------------
+            // [1] Azure Blob Storage & DB 카운트 증가 (클라우드 저장)
+            // ---------------------------------------------------------
+            try {
+                // (1) Azure에 전체 경로 파일 저장
+                const planData = {
+                    timestamp: new Date().toISOString(),
+                    spots: allSpotsData,
+                    survey: JSON.parse(localStorage.getItem('surveyData') || '{}')
+                };
+
+                fetch('/api/save-plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(planData)
+                }).then(res => res.json()).then(data => {
+                    if(data.success) console.log("✅ Azure Blob 저장 완료");
+                });
+
+                // (2) DB에 방문 카운트 증가
+                console.log("🔥 인기도 반영 시작...");
+                for (const spot of allSpotsData) {
+                    const formData = new FormData();
+                    formData.append('place_name', spot.name); 
+                    fetch('/api/upload-and-count', { method: 'POST', body: formData });
+                }
+
+            } catch (e) {
+                console.error("❌ 클라우드 저장 중 오류:", e);
+                // 클라우드 오류가 나도 로컬 저장은 진행되도록 비동기 처리
+            }
+
+            // ---------------------------------------------------------
+            // [2] 로컬 스토리지 저장 (Saved 탭용 - 여기가 핵심 수정!)
+            // ---------------------------------------------------------
+            const currentPlan = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                spots: allSpotsData
+            };
+            
+            // saved.html에서 쓰는 키 이름인 'ktrip_saved_routes'로 맞춰줍니다.
+            let savedPlans = JSON.parse(localStorage.getItem('ktrip_saved_routes')) || [];
+            savedPlans.push(currentPlan);
+            localStorage.setItem('ktrip_saved_routes', JSON.stringify(savedPlans));
+
+            
+        }
         function startNewTrip() {
             // 1. 과거의 모든 기억 삭제
             localStorage.removeItem('currentSpots');

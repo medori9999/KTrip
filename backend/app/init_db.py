@@ -81,5 +81,40 @@ def init_database():
     conn.close()
     print(f"🎉 총 {success_count}개 장소 데이터 저장 완료! (DB 파일: {DB_PATH})")
 
+def init_visited_table():
+    """추가 기능: 방문자 카운트를 위한 visited_spots 테이블 생성"""
+    print(f"🛠️ 방문자 카운트 테이블 생성 중...")
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # visited_spots 테이블 생성 (이미 있으면 생성 안 함)
+    # place_name: 장소 이름 (PRIMARY KEY로 중복 방지)
+    # count: 방문한 팬의 수
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS visited_spots (
+        place_name TEXT PRIMARY KEY,
+        count INTEGER DEFAULT 0
+    )
+    """)
+
+    # [테스트용] 초기 데이터가 없을 때만 몇 가지 장소 추가 (필요 없으면 삭제 가능)
+    test_data = [('Gyeongbokgung', 10), ('N Seoul Tower', 5)]
+    for name, cnt in test_data:
+        cursor.execute("INSERT OR IGNORE INTO visited_spots (place_name, count) VALUES (?, ?)", (name, cnt))
+
+    conn.commit()
+    conn.close()
+    print("✅ 'visited_spots' 테이블 준비 완료!")
+
+if __name__ == "__main__":
+    # 1. 기존 장소 데이터 초기화 실행
+    init_database()
+    
+    # 2. 새로운 방문자 카운트 테이블 생성 실행
+    init_visited_table()
+    
+    print(f"\n🚀 모든 데이터베이스 설정이 완료되었습니다! (경로: {DB_PATH})")
+
 if __name__ == "__main__":
     init_database()
