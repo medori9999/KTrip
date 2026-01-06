@@ -1,97 +1,67 @@
-# KTrip: AI 기반 K-Culture 여행 큐레이션 및 콘텐츠 생성 플랫폼
+# ✈️ KTrip: AI 기반 K-Culture 여행 큐레이션 플랫폼
 
-## 1. 프로젝트 개요
-**KTrip**은 사용자의 취향과 상황을 분석하여 최적의 K-Drama/Movie 촬영지 여행 코스를 추천하고, 여행 중 촬영한 사진을 SNS(Instagram, Blog) 감성에 맞게 AI로 변환하여 제공하는 서비스이다. Microsoft Azure 클라우드 인프라와 Azure OpenAI를 기반으로 구축된다.
-
----
-
-## 2. 시스템 아키텍처 (System Architecture)
-본 프로젝트는 확장성과 유지보수를 고려하여 **3-Tier Architecture**를 채택하였으며, AI 서비스 계층이 통합된 구조이다.
-
-### 2.1. Frontend Layer
-* **기술 스택:** Streamlit (Python)
-* **역할:** 사용자 인터페이스(UI) 제공 및 데이터 수집.
-* **주요 기능:**
-    * 여행 취향 심층 설문(Basic Info, Travel Style, Interests, Food/Café, Photos).
-    * AI가 생성한 여행 코스 및 지도 시각화.
-    * 여행 사진 업로드 및 스타일 변환 결과 확인.
-
-### 2.2. Backend Layer
-* **기술 스택:** FastAPI (Python), SQLAlchemy
-* **역할:** 비즈니스 로직 처리 및 데이터 입출력 관리.
-* **주요 기능:**
-    * RESTful API 제공.
-    * 프론트엔드 요청 수신 및 데이터베이스 쿼리 수행.
-    * Azure OpenAI 및 Vision API 연동을 통한 AI 서비스 중계.
-
-### 2.3. Data Layer
-* **Database:** SQLite (개발 단계) → Azure SQL Database (운영 단계 예정)
-* **Storage:** Local Storage (개발 단계) → Azure Blob Storage (이미지 저장용 예정)
-* **역할:** 정형 데이터(촬영지 정보, 사용자 로그) 및 비정형 데이터(이미지) 관리.
-
-### 2.4. AI Service Layer
-* **기술 스택:** Azure OpenAI Service (GPT-4), Azure Computer Vision (예정)
-* **역할:**
-    * 사용자 입력 프롬프트 기반 맞춤형 여행 코스 및 설명 생성.
-    * 업로드된 이미지의 스타일 변환 및 캡션 생성.
+> **"화면 속 동경이 현실의 여정이 되는 곳, 개인화 AI 여행 비서 KTrip"**
+> 
+> KTrip은 사용자의 취향을 분석하여 최적의 K-콘텐츠 촬영지 경로를 설계하고, 여행 중 마주치는 복잡한 메뉴판을 AI로 정밀 분석하여 현지인처럼 즐길 수 있도록 돕는 서비스입니다.
 
 ---
 
-## 3. 현재 구현 현황 (Current Status)
+##  주요 기능 (Core Features)
 
-### 3.1. 백엔드 및 데이터베이스 구축
-* **ORM 설정:** SQLAlchemy를 이용한 DB 연결 모듈(`database.py`) 구현 완료.
-* **데이터 스키마 설계 (`models.py`):**
-    * `Location`: 촬영지 기본 정보(장소명, 주소, 위경도, 미디어 정보, AI 요약).
-    * `PhotoLog`: 사용자 업로드 이미지 경로 및 변환 로그 관리.
-* **테스트 환경:** DB 생성 및 CRUD 테스트 스크립트(`test_db.py`) 작성 및 검증 완료.
+### 1. 지능형 메뉴 분석 (Smart Menu Analysis)
+단순한 텍스트 추출을 넘어 메뉴의 맥락을 읽어내는 분석 엔진입니다. 
+- [cite_start]**OCR + LLM 하이브리드 정제:** Azure OCR의 공간 좌표 데이터와 GPT-4o의 문맥 추론을 결합하여 조각난 텍스트를 의미 단위로 재조합합니다[cite: 743, 815].
+- [cite_start]**정보 확장:** 메뉴 명칭 번역을 넘어 재료 설명, 맵기 단계 등을 AI가 스스로 판단하여 부가 정보를 제공합니다[cite: 817, 818].
 
-### 3.2. 프론트엔드 프로토타입 개발
-* **사용자 설문 UI 구현:** Streamlit을 활용하여 5단계 심층 설문 폼 구현 완료.
-    1.  기본 여행 정보 (지역, 기간)
-    2.  여행 스타일 (속도, 동행)
-    3.  관심사 (K-Content 비중, 세부 장르)
-    4.  식음료 취향 (음식, 카페)
-    5.  사진 및 기록 선호도
-* **데이터 연동 준비:** 설문 결과를 JSON 형태로 직렬화하여 백엔드 전송 준비 완료.
+> **[메뉴판 과정]**
+> ![Image](https://github.com/user-attachments/assets/71352a59-7432-4e3d-b013-f173ca737111)
+
+### 2. RAG 기반 맞춤형 경로 추천 (Personalized Route)
+방대한 촬영지 DB에서 나만을 위한 '소울 루트'를 도출합니다.
+- [cite_start]**4단계 RAG 아키텍처:** 키워드 추출 → DB 검색 → 관련도 랭킹 → 일정 생성의 4단계를 거쳐 할루시네이션(환각)을 최소화한 정보를 제공합니다[cite: 695, 705].
+- [cite_start]**병렬 처리 파이프라인:** 경로 생성과 메뉴 분석을 비동기 병렬로 처리하여 사용자 대기 시간을 이론적으로 50% 단축했습니다[cite: 611, 619].
+
+> <img width="713" height="524" alt="Image" src="https://github.com/user-attachments/assets/91e2565e-22d6-481b-8cf9-a1e4746bc6f5" />
+ <img width="873" height="649" alt="Image" src="https://github.com/user-attachments/assets/750f95a0-e727-42d9-b33b-a00c40d39437" />
+
+### 3. 여행 로그 및 소셜 템플릿 (Travel Log)
+나의 발자취를 기록하고 감각적인 포스터로 변환합니다.
+- [cite_start]**데이터 선순환:** 사용자의 방문 로그를 '취향의 좌표'로 축적하여 향후 고도화된 추천 시스템의 기반으로 활용합니다.
+<img width="370" height="824" alt="Image" src="https://github.com/user-attachments/assets/8d90b81a-efa7-4ffb-bc36-97e52e5c73ff" />
+---
+
+##  기술적 챌린지 및 해결 (Technical Deep Dive)
+
+### ** 자간 이슈: 공간 좌표 기반 텍스트 복원**
+- [cite_start]**문제:** 메뉴판의 넓은 자간으로 인해 OCR이 단어를 개별 글자로 오인하여 번역 품질 저하 발생[cite: 796, 798].
+- [cite_start]**해결:** 텍스트의 **Y좌표 근접도**를 계산하고 LLM 프롬프트에 공간 레이아웃 정보를 주입하여, 파편화된 로우 데이터를 의미 있는 메뉴 정보로 완벽하게 재구성했습니다[cite: 815, 816].
+<img width="1239" height="509" alt="Image" src="https://github.com/user-attachments/assets/9af19dc8-dab7-4c16-b2b4-ba2eaf344a5d" />
+
+### ** 4-Tier 아키텍처를 통한 효율적인 데이터 처리**
+- [cite_start]**설계:** Client - Server - AI - Storage의 4계층 분리 설계를 통해 확장성을 확보했습니다[cite: 600].
+- [cite_start]**효율:** 대용량 비정형 이미지(Blob)와 정형 텍스트(SQLite) 저장소를 분리하여 I/O 부하를 분산하고 처리 속도를 극대화했습니다[cite: 599].
 
 ---
 
-## 4. 향후 로드맵 (Roadmap)
+## 기술 스택 (Tech Stack)
 
-### Phase 1: 핵심 기능 통합 (Current)
-* [ ] 팀원별 정제 데이터(CSV)의 데이터베이스 적재 (ETL).
-* [ ] Frontend와 Backend API 연동.
-* [ ] Azure OpenAI API 연동을 통한 실제 여행 코스 생성 로직 구현.
-
-### Phase 2: AI 기능 고도화
-* [ ] 사용자 설문 기반 프롬프트 엔지니어링 최적화.
-* [ ] 이미지 스타일 변환 기능 구현 .
-* [ ] 경로 최적화 알고리즘 적용 (휴리스틱 or 위경도 최단거리계산).
-
-### Phase 3: 클라우드 배포 및 최적화
-* [ ] Azure 리소스 그룹 생성 및 클라우드 DB 마이그레이션.
-* [ ] Docker Container 패키징 및 Azure Container Apps 배포.
-* [ ] 전체 시스템 통합 테스트 및 버그 수정.
+| 구분 | 기술 스택 |
+| :--- | :--- |
+| **Frontend** | [cite_start]Vanilla JS, MediaDevices API (경량 SPA 구조) [cite: 587, 588] |
+| **Backend** | [cite_start]FastAPI, Uvicorn, SQLAlchemy (비동기 컨트롤 타워) [cite: 574, 578, 590] |
+| **AI Service** | [cite_start]Azure OpenAI (GPT-4o), Azure Document Intelligence [cite: 568, 573] |
+| **Cloud/Infra** | [cite_start]Azure App Service, Azure Blob Storage, GitHub [cite: 571, 575] |
 
 ---
 
-## 5. 프로젝트 구조 (Directory Structure)
+##  프로젝트 구조 (Directory Structure)
+
 ```bash
 KTrip/
-├── ai/                  # AI 모델 실험 및 데이터 전처리 (Jupyter Notebook)
-├── backend/             # 백엔드 서버 어플리케이션
+├── backend/             # FastAPI 기반 비동기 API 서버
 │   └── app/
-│       ├── main.py      # API Entry Point
-│       ├── database.py  # DB 세션 관리
-│       ├── models.py    # DB 스키마 정의
-│       └── test_db.py   # DB 유닛 테스트
-├── frontend/            # 프론트엔드 어플리케이션
-│   └── app.py           # Streamlit 실행 파일
-├── data/                # 원본 및 정제 데이터 저장소
-└── README.md            # 프로젝트 명세서
-
-```
-
-
-![전체 아키텍처 구조도](image/arc.png)
+[cite_start]│       ├── main.py      # 컨트롤 타워 및 API 엔드포인트 [cite: 609]
+[cite_start]│       ├── ocr.py       # Azure Document Intelligence 연동 스크립트 [cite: 592]
+[cite_start]│       └── llm.py       # GPT-4o 기반 데이터 정제 및 추천 로직 [cite: 592]
+├── frontend/            # Vanilla JS 기반 경량 프론트엔드
+[cite_start]└── data/                # K-Media 촬영지 및 마스터 DB [cite: 651]
