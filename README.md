@@ -19,8 +19,9 @@
 ### 2. RAG 기반 맞춤형 경로 추천 (Personalized Route)
 <img width="1339" height="618" alt="Image" src="https://github.com/user-attachments/assets/dd923063-2154-4508-938b-a390b1eb8bfd" />
 방대한 촬영지 DB에서 나만을 위한 '소울 루트'를 도출합니다.
-- [cite_start]**4단계 RAG 아키텍처:** 키워드 추출 → DB 검색 → 관련도 랭킹 → 일정 생성의 4단계를 거쳐 할루시네이션(환각)을 최소화한 정보를 제공합니다.
-- [cite_start]**병렬 처리 파이프라인:** 경로 생성과 메뉴 분석을 비동기 병렬로 처리하여 사용자 대기 시간을 이론적으로 50% 단축했습니다.
+
+- **4단계 RAG 아키텍처:** 키워드 추출 → DB 검색 → 관련도 랭킹 → 일정 생성의 4단계를 거쳐 할루시네이션(환각)을 최소화한 정보를 제공합니다.
+- **병렬 처리 파이프라인:** 경로 생성과 메뉴 분석을 비동기 병렬로 처리하여 사용자 대기 시간을 이론적으로 50% 단축했습니다.
 
 > <img width="713" height="524" alt="Image" src="https://github.com/user-attachments/assets/91e2565e-22d6-481b-8cf9-a1e4746bc6f5" />
  <img width="873" height="649" alt="Image" src="https://github.com/user-attachments/assets/750f95a0-e727-42d9-b33b-a00c40d39437" />
