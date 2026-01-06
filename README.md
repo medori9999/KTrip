@@ -52,6 +52,7 @@
 
 ### ** 4-Tier 아키텍처를 통한 효율적인 데이터 처리**
 <img width="1139" height="308" alt="Image" src="https://github.com/user-attachments/assets/be1f66c4-ddd7-45c3-8bf5-ad49a90ab8c6" />
+
 - **설계:** Client - Server - AI - Storage의 4계층 분리 설계를 통해 확장성을 확보했습니다.
 - **효율:** 대용량 비정형 이미지(Blob)와 정형 텍스트(SQLite) 저장소를 분리하여 I/O 부하를 분산하고 처리 속도를 극대화했습니다.
 
