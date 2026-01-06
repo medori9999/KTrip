@@ -18,6 +18,7 @@
 
 ### 2. RAG 기반 맞춤형 경로 추천 (Personalized Route)
 <img width="1339" height="618" alt="Image" src="https://github.com/user-attachments/assets/dd923063-2154-4508-938b-a390b1eb8bfd" />
+
 방대한 촬영지 DB에서 나만을 위한 '소울 루트'를 도출합니다.
 
 - **4단계 RAG 아키텍처:** 키워드 추출 → DB 검색 → 관련도 랭킹 → 일정 생성의 4단계를 거쳐 할루시네이션(환각)을 최소화한 정보를 제공합니다.
@@ -28,7 +29,7 @@
 
 ### 3. 여행 로그 및 소셜 템플릿 (Travel Log)
 나의 발자취를 기록하고 감각적인 포스터로 변환합니다.
-- [cite_start]**데이터 선순환:** 사용자의 방문 로그를 '취향의 좌표'로 축적하여 향후 고도화된 추천 시스템의 기반으로 활용합니다.
+- **데이터 선순환:** 사용자의 방문 로그를 '취향의 좌표'로 축적하여 향후 고도화된 추천 시스템의 기반으로 활용합니다.
 <img width="370" height="824" alt="Image" src="https://github.com/user-attachments/assets/8d90b81a-efa7-4ffb-bc36-97e52e5c73ff" />
 ---
 
@@ -38,6 +39,16 @@
 - **문제:** 메뉴판의 넓은 자간으로 인해 OCR이 단어를 개별 글자로 오인하여 번역 품질 저하 발생.
 - **해결:** 텍스트의 **Y좌표 근접도**를 계산하고 LLM 프롬프트에 공간 레이아웃 정보를 주입하여, 파편화된 로우 데이터를 의미 있는 메뉴 정보로 완벽하게 재구성했습니다.
 <img width="1239" height="509" alt="Image" src="https://github.com/user-attachments/assets/9af19dc8-dab7-4c16-b2b4-ba2eaf344a5d" />
+
+### ** RAG 컨텍스트 구조화를 통한 정보 신뢰성 확보**
+
+<img width="1298" height="484" alt="Image" src="https://github.com/user-attachments/assets/fd8d30b9-7909-4396-8410-e2f134951055" />
+
+- **문제:** 초기 버전에서는 장소 이름 위주의 단순 텍스트를 LLM에 전달하여, 모델이 해당 장소의 정확한 좌표나 관련 미디어 정보를 파악하지 못하는 한계가 있었다.
+- **해결:** 검색된 데이터를 **Key-Value 기반의 구조화된 컨텍스트(RAG Context)**로 변환하여 LLM에 주입하는 방식으로 개선했습니다.
+    - **Before:** "명동교자, 학동공원 등이 있습니다." (위치 및 미디어 정보 부재)
+    - **After:** 장소명, 관련 콘텐츠(예: Running Man), 상세 좌표, 특징을 포함한 정형 데이터 제공
+- **결과:** LLM이 정확한 위치 정보를 바탕으로 동선을 설계하고, 사용자 취향(특정 예능/드라마)에 부합하는 정밀한 일정 생성이 가능해졌습니다.
 
 ### ** 4-Tier 아키텍처를 통한 효율적인 데이터 처리**
 <img width="1139" height="308" alt="Image" src="https://github.com/user-attachments/assets/be1f66c4-ddd7-45c3-8bf5-ad49a90ab8c6" />
