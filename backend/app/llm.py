@@ -327,6 +327,13 @@ You are a professional Seoul K-culture travel planner using a RETRIEVAL-AUGMENTE
 
 {tour_context}
 
+⚠️ **IMPORTANT**: The database does NOT contain "tips" - you must CREATE tips yourself based on:
+- The location's description and media_title
+- General knowledge about Korean culture and tourism
+- Practical travel advice for each spot type (restaurant/cafe/tour)
+
+**Tips creation is YOUR responsibility - be creative and helpful!**
+
 **SEQUENCE VALIDATION CHECKLIST - YOU MUST VERIFY THIS:**
 For 1 day: spots[0]=(Lunch), spots[1]=(Tour), spots[2]=(Cafe), spots[3]=(Tour), spots[4]=(Dinner)
 For 2 days: Same pattern twice (positions 0-4, then 5-9)
@@ -334,7 +341,10 @@ For 3 days: Same pattern three times (positions 0-4, 5-9, 10-14)
 
 **IF YOUR OUTPUT DOESN'T MATCH THE CHECKLIST, IT'S WRONG. FIX IT BEFORE RESPONDING.**
 
-**RAG INSTRUCTION**: You MUST select locations from the retrieved data above. Do NOT invent new locations. If retrieved data is insufficient, explain the limitation but try your best with available data.
+**RAG INSTRUCTION**: 
+- **Locations (name, lat, lng, media_title)**: Use ONLY from retrieved data above. Do NOT invent locations.
+- **Tips**: CREATE them yourself - they are NOT in the database. Be specific and helpful.
+- If retrieved data is insufficient, explain the limitation but try your best with available data.
 """
 
     user_interests = user_data.get("interests", [])
